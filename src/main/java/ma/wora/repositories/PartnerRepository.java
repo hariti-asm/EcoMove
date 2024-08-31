@@ -2,6 +2,7 @@ package main.java.ma.wora.repositories;
 
 
 import main.java.ma.wora.models.entities.Partner;
+import main.java.ma.wora.models.enums.PartnerStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,4 +13,8 @@ public interface PartnerRepository {
     Partner findByName(String companyName  );
     Partner add(Partner partner);
     Partner update(Partner partner);
+    boolean remove(UUID id);
+    boolean changeStatus(UUID id, PartnerStatus newStatus);
+    Partner findById(UUID id);
+
 }

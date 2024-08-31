@@ -123,4 +123,67 @@ public Partner update(Partner partner) {
         throw new RuntimeException(e);
     }
 }
+
+    @Override
+    public boolean remove(UUID id) {
+        final String query = "DELETE FROM " + tableName + " WHERE id = '" + id.toString() + "'";
+
+        try (final Statement stmt = connection.createStatement()) {
+            int rowsAffected = stmt.executeUpdate(query);
+
+            if (rowsAffected > 0) {
+                // If a partner was removed, return true
+                System.out.println("Partner with ID " + id + " was removed successfully.");
+                return true;
+            } else {
+                // If no partner was found to remove, return false
+                System.out.println("Partner with ID " + id + " not found.");
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to remove partner with ID: " + id, e);
+        }
+    }
+    @Override
+    public boolean changeStatus(UUID id, PartnerStatus newStatus) {
+        final String query = "UPDATE " + tableName + " SET status = '" + newStatus.name() + "' WHERE id = '" + id.toString() + "'";
+
+        try (final Statement stmt = connection.createStatement()) {
+            int rowsAffected = stmt.executeUpdate(query);
+
+            if (rowsAffected > 0) {
+                System.out.println("Partner status updated successfully.");
+                return true;
+            } else {
+                System.out.println("Partner with ID " + id + " not found.");
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update partner status with ID: " + id, e);
+        }
+    }
+    @Override
+    public Partner findById(UUID id) {
+        final String query = "SELECT * FROM " + tableName + " WHERE id = ?";
+        try (final PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setObject(1, id);
+            final ResultSet resultSet = pstmt.executeQuery();
+            if (resultSet.next()) {
+                return new Partner(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getString("company_name"),
+                        resultSet.getString("transport_type"),
+                        resultSet.getString("geographical_zone"),
+                        resultSet.getString("special_conditions"),
+                        resultSet.getString("status"),
+                        resultSet.getDate("creation_date")
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+
 }

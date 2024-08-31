@@ -30,6 +30,8 @@ public class Main {
             menu.displayMenu();
             int choice = getUserChoice();
             switch (choice) {
+                case 6 : partnerUi.changePartnerStatus();
+                case 5 : partnerUi.removePartner();
                 case 4 : partnerUi.updatePartner();
                 case 3: partnerUi.addPartner();
                 case 2: partnerUi.displayPartnerByName();
