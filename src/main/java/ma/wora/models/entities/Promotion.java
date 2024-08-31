@@ -1,4 +1,7 @@
-package main.java.ma.wora;
+package main.java.ma.wora.models.entities;
+
+import main.java.ma.wora.models.enums.DiscountType;
+import main.java.ma.wora.models.enums.PromotionStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -14,7 +17,7 @@ public class Promotion {
     private BigDecimal discountValue;
     private String conditions;
     private PromotionStatus status;
-    private Partner partner;
+    private DiscountType.Contract.Partner partner;
 
     public UUID getId() {
         return id;
@@ -84,11 +87,11 @@ public class Promotion {
         this.status = status;
     }
 
-    public Partner getPartner() {
+    public DiscountType.Contract.Partner getPartner() {
         return partner;
     }
 
-    public void setPartner(Partner partner) {
+    public void setPartner(DiscountType.Contract.Partner partner) {
         this.partner = partner;
     }
 

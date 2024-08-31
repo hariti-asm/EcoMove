@@ -4,38 +4,49 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Properties;
 
 public class JdbcPostgresqlConnection {
 
-    public static void main(String[] args) {
-        Connection conn = null;
-        Statement statement = null;
+    private static Connection connection = null;
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/ecomove";
+    private static final String USERNAME = "postgres";
+    private static final String PASSWORD = "asmaa123";
 
-        try {
-            String dbURL3 = "jdbc:postgresql://localhost:5432/ecomove";
-            String username = "postgres";
-            String password = "asmaa123";
+    // Private constructor to prevent instantiation
+    private JdbcPostgresqlConnection() {}
 
-            // Establish connection by get con
-            conn = DriverManager.getConnection(dbURL3, username, password);
-            statement = conn.createStatement();
-
-            if (conn != null) {
+    // Method to establish and return a connection
+    private static Connection getConnection() {
+        if (connection == null) {
+            try {
+                connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
                 System.out.println("Connected to database");
+            } catch (SQLException ex) {
+                ex.printStackTrace();
             }
+        }
+        return connection;
+    }
 
-
+    // Method to get a Statement instance
+    public static Statement getInstance() {
+        try {
+            Connection conn = getConnection();
+            if (conn != null) {
+                return conn.createStatement();
+            }
         } catch (SQLException ex) {
             ex.printStackTrace();
-        } finally {
+        }
+        return null;
+    }
+
+    // Close the connection
+    public static void closeConnection() {
+        if (connection != null) {
             try {
-                if (statement != null && !statement.isClosed()) {
-                    statement.close();
-                }
-                if (conn != null && !conn.isClosed()) {
-                    conn.close();
-                }
+                connection.close();
+                connection = null;
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }

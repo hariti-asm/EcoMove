@@ -1,4 +1,7 @@
-package main.java.ma.wora;
+package main.java.ma.wora.models.entities;
+
+import main.java.ma.wora.models.enums.TicketStatus;
+import main.java.ma.wora.models.enums.TransportType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
