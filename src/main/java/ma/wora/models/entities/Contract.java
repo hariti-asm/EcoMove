@@ -1,0 +1,93 @@
+package main.java.ma.wora.models.entities;
+
+import main.java.ma.wora.models.enums.ContractStatus;
+import main.java.ma.wora.models.enums.DiscountType;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.UUID;
+
+public class Contract {
+    UUID id;
+    Date startDate;
+    Date endDate;
+    BigDecimal specialRate;
+    String agreementConditions;
+    boolean renewable;
+    ContractStatus status;
+    Ticket ticket;
+    DiscountType discountType;
+
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public BigDecimal getSpecialRate() {
+        return specialRate;
+    }
+
+    public void setSpecialRate(BigDecimal specialRate) {
+        this.specialRate = specialRate;
+    }
+
+    public String getAgreementConditions() {
+        return agreementConditions;
+    }
+
+    public void setAgreementConditions(String agreementConditions) {
+        this.agreementConditions = agreementConditions;
+    }
+
+    public boolean isRenewable() {
+        return renewable;
+    }
+
+    public void setRenewable(boolean renewable) {
+        this.renewable = renewable;
+    }
+
+    public ContractStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ContractStatus status) {
+        this.status = status;
+    }
+
+    public Ticket getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        this.ticket = ticket;
+    }
+
+    public DiscountType getDiscountType() {
+        return discountType;
+    }
+
+    public void setDiscountType(DiscountType discountType) {
+        this.discountType = discountType;
+    }
+}

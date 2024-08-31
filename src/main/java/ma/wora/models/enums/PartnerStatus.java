@@ -1,4 +1,4 @@
-package main.java.ma.wora;
+package main.java.ma.wora.models.enums;
 
 public enum PartnerStatus {
     ACTIVE, INACTIVE,SUSPENDED
