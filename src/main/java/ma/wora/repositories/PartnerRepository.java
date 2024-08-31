@@ -11,4 +11,5 @@ public interface PartnerRepository {
     List<Partner>findAll();
     Partner findByName(String companyName  );
     Partner add(Partner partner);
+    Partner update(Partner partner);
 }
