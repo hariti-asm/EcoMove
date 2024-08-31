@@ -9,9 +9,6 @@ import java.util.UUID;
 
 public class Partner {
     private UUID id;
-
-
-
     private String companyName;
     private TransportType transportType;
     private String geographicalZone;
@@ -39,6 +36,8 @@ public class Partner {
         this.status = PartnerStatus.valueOf(status);
         this.creationDate = creationDate;
     }
+
+
 
 
     public UUID getId() {

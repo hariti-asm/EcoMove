@@ -67,11 +67,9 @@ public class PartnerRepositoryImpl implements PartnerRepository {
 
     @Override
     public Partner add(Partner partner) {
-        // Ensure the ID is set before inserting
         if (partner.getId() == null) {
-            partner.setId(UUID.randomUUID());  // Generate a new UUID if it's null
+            partner.setId(UUID.randomUUID());
         }
-
         String creationDateValue = (partner.getCreationDate() != null) ?
                 "'" + partner.getCreationDate() + "'" : "NULL";
 
@@ -96,5 +94,33 @@ public class PartnerRepositoryImpl implements PartnerRepository {
             throw new RuntimeException(e);
         }
     }
+@Override
 
+public Partner update(Partner partner) {
+    final String query = "UPDATE " + tableName +
+            " SET company_name = ?, transport_type = ?, geographical_zone = ?, special_conditions = ?, status = ?, creation_date = ?" +
+            " WHERE id = ?";
+
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        pstmt.setString(1, partner.getCompanyName());
+        pstmt.setString(2, String.valueOf(partner.getTransportType()));
+        pstmt.setString(3, partner.getGeographicalZone());
+        pstmt.setString(4, partner.getSpecialConditions());
+        pstmt.setString(5, String.valueOf(partner.getStatus()));
+        pstmt.setDate(6, Date.valueOf(String.valueOf(partner.getCreationDate())));
+        pstmt.setObject(7, partner.getId());
+
+        int rowsAffected = pstmt.executeUpdate();
+
+        if (rowsAffected > 0) {
+            System.out.println("Partner updated successfully.");
+            return partner;
+        } else {
+            System.out.println("Partner not found or wasn't updated.");
+            return null;
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException(e);
+    }
+}
 }
