@@ -1,6 +1,7 @@
 package main.java.ma.wora.presentation;
 
 import main.java.ma.wora.models.entities.Partner;
+import main.java.ma.wora.models.enums.PartnerStatus;
 import main.java.ma.wora.repositories.PartnerRepository;
 
 import java.sql.Date;
@@ -129,6 +130,63 @@ else
             System.out.println("Partner updated successfully.");
         } else {
             System.out.println("Partner update failed.");
+        }
+    }
+    public void removePartner() {
+        System.out.println("Enter the ID of the partner to remove:");
+        String idInput = scanner.nextLine();
+
+        UUID id;
+        try {
+            id = UUID.fromString(idInput);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid UUID format. Please enter a valid UUID.");
+            return;
+        }
+
+        boolean success = repository.remove(id);
+
+        if (success) {
+            System.out.println("Partner removed successfully.");
+        } else {
+            System.out.println("Partner with ID " + id + " not found.");
+        }
+    }
+    public void changePartnerStatus() {
+        System.out.println("Enter the ID of the partner to change status:");
+        String idInput = scanner.nextLine();
+
+        UUID id;
+        try {
+            id = UUID.fromString(idInput);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid UUID format. Please enter a valid UUID.");
+            return;
+        }
+
+        Partner existingPartner = repository.findById(id);
+        if (existingPartner == null) {
+            System.out.println("Partner with ID " + id + " not found.");
+            return;
+        }
+
+        System.out.println("Enter the new status (e.g., ACTIVE, INACTIVE):");
+        String statusInput = scanner.nextLine();
+
+        PartnerStatus newStatus;
+        try {
+            newStatus = PartnerStatus.valueOf(statusInput.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid status. Please enter a valid status.");
+            return;
+        }
+
+        boolean success = repository.changeStatus(id, newStatus);
+
+        if (success) {
+            System.out.println("Partner status changed successfully.");
+        } else {
+            System.out.println("Failed to change partner status.");
         }
     }
 
