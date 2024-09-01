@@ -1,6 +1,6 @@
 package main.java.ma.wora.presentation;
 
-public class Menu {
+public class PartnerMenu {
     public void displayMenu() {
         System.out.println("\n--- Partner Management System ---");
         System.out.println("1. Display all partners");
