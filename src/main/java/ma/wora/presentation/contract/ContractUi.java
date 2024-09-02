@@ -19,9 +19,35 @@ public class ContractUi {
     private final ContractRepository contractRepository;
     private final PartnerRepository partnerRepository;
 
+    public void displayContractMenu() {
+        boolean running = true;
+
+        while (running) {
+            System.out.println("--- Contract Management ---");
+            System.out.println("1. Insert contract");
+            System.out.println("0. Back to Main Menu");
+            System.out.print("Enter your choice: ");
+
+            int choice = getUserChoice();
+            switch (choice) {
+                case 1 -> addContract();
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+    private int getUserChoice() {
+        while (!scanner.hasNextInt()) {
+            System.out.println("That's not a valid number. Please try again.");
+            scanner.next();
+        }
+        return scanner.nextInt();
+    }
+
     public ContractUi(ContractRepository contractRepository, PartnerRepository partnerRepository) {
         this.contractRepository = contractRepository;
         this.partnerRepository = partnerRepository;
+
     }
 
     public void addContract() {
@@ -101,6 +127,9 @@ public class ContractUi {
             return;
         }
 
+
+
+
         Contract contract = new Contract(
                 UUID.randomUUID(),
                 Date.valueOf(startDate),
@@ -111,6 +140,7 @@ public class ContractUi {
                 status,
                 partner,
                 discountType
+
         );
 
         try {
