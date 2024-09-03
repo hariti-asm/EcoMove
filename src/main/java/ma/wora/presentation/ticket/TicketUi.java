@@ -1,28 +1,29 @@
 package main.java.ma.wora.presentation.ticket;
 
+import main.java.ma.wora.impl.TicketRepositoryImpl;
 import main.java.ma.wora.models.entities.Ticket;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
 import main.java.ma.wora.repositories.TicketRepository;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.UUID;
 
 public class TicketUi {
     private static final Scanner scanner = new Scanner(System.in);
-    private final TicketRepository ticketRepository;
+    private  final TicketRepository ticketRepository;
 
-    public TicketUi(TicketRepository ticketRepository) {
+    public TicketUi(TicketRepository ticketRepository) throws SQLException {
         this.ticketRepository = ticketRepository;
     }
 
     public void addTicket() {
-        System.out.println("Enter Ticket ID (UUID):");
-        UUID id = UUID.fromString(scanner.nextLine().trim());
-
         System.out.println("Enter Transport Type (e.g., BUS, TRAIN):");
         TransportType transportType = TransportType.valueOf(scanner.nextLine().trim().toUpperCase());
 
@@ -33,17 +34,15 @@ public class TicketUi {
         BigDecimal sellingPrice = new BigDecimal(scanner.nextLine().trim());
 
         System.out.println("Enter Sale Date (YYYY-MM-DDTHH:MM:SS):");
-        LocalDateTime saleDate = LocalDateTime.parse(scanner.nextLine().trim());
-
+        LocalDate saleDate = LocalDate.parse(scanner.nextLine().trim());
         System.out.println("Enter Status (e.g., SOLD, AVAILABLE):");
         TicketStatus status = TicketStatus.valueOf(scanner.nextLine().trim().toUpperCase());
 
         Ticket ticket = new Ticket();
-        ticket.setId(id);
         ticket.setTransportType(transportType);
         ticket.setPurchasePrice(purchasePrice);
         ticket.setSellingPrice(sellingPrice);
-        ticket.setSaleDate(saleDate);
+        ticket.setSaleDate(Date.valueOf(saleDate));
         ticket.setStatus(status);
 
         Ticket addedTicket = ticketRepository.add(ticket);
@@ -86,7 +85,7 @@ public class TicketUi {
             ticket.setSellingPrice(new BigDecimal(scanner.nextLine().trim()));
 
             System.out.println("Enter new Sale Date (YYYY-MM-DDTHH:MM:SS):");
-            ticket.setSaleDate(LocalDateTime.parse(scanner.nextLine().trim()));
+            ticket.setSaleDate(Date.valueOf(LocalDate.parse(scanner.nextLine())));
 
             System.out.println("Enter new Status (e.g., SOLD, AVAILABLE):");
             ticket.setStatus(TicketStatus.valueOf(scanner.nextLine().trim().toUpperCase()));
@@ -109,6 +108,11 @@ public class TicketUi {
 
     }
     private void getTicketById() {
+        if (this.ticketRepository == null) {
+            System.out.println("Error: TicketRepository is not initialized.");
+            return;
+        }
+
         System.out.println("Enter Ticket ID:");
         UUID ticketId = UUID.fromString(scanner.next().trim());
         Ticket ticket = ticketRepository.findById(ticketId);
@@ -128,12 +132,14 @@ public class TicketUi {
         System.out.println("Status: " + ticket.getStatus());
     }
 
-    private static int getUserChoice() {
+    private int getUserChoice() {
         while (!scanner.hasNextInt()) {
             System.out.println("That's not a valid number. Please try again.");
             scanner.next();
         }
-        return scanner.nextInt();
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
     }
     public void displayTicketMenu() {
         boolean running = true;
