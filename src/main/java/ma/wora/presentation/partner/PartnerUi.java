@@ -1,4 +1,4 @@
-package main.java.ma.wora.presentation;
+package main.java.ma.wora.presentation.partner;
 
 import main.java.ma.wora.models.entities.Partner;
 import main.java.ma.wora.models.enums.PartnerStatus;
@@ -11,45 +11,49 @@ import java.util.Scanner;
 import java.util.UUID;
 
 public class PartnerUi {
-    private static final Scanner scanner = new Scanner(System.in);
+    private final PartnerRepository partnerRepository;
+    private final Scanner scanner = new Scanner(System.in);
 
-    private final PartnerRepository repository;
-
-    public PartnerUi(PartnerRepository repository) {
-        this.repository = repository;
+    public PartnerUi(PartnerRepository partnerRepository) {
+        this.partnerRepository = partnerRepository;
     }
 
     public void displayAllPartners() {
-        List<String> partnerNames = repository.findAll()
-                .stream()
-                .map(Partner::getCompanyName)
-                .toList();
+        List<Partner> partners = partnerRepository.findAll();
 
-        if (partnerNames.isEmpty()) {
+        if (partners.isEmpty()) {
             System.out.println("No partners found.");
         } else {
-            partnerNames.forEach(System.out::println);
+            for (Partner partner : partners) {
+                showPartnerDetails(partner);
+                System.out.println();
+            }
         }
-
     }
 
     public void displayPartnerByName() {
-System.out.println("Enter the partner name to search for:");
-String companyName = scanner.nextLine();
-    Partner partner = repository.findByName(companyName);
-    if(partner !=null)
+        scanner.nextLine();
+        System.out.println("Enter the partner name to search for:");
+        String companyName = scanner.nextLine();
 
-    {
-        System.out.println("partner " + partner.getCompanyName() +" found:\n" );
-
+        Partner partner = partnerRepository.findByName(companyName);
+        if (partner != null) {
+            showPartnerDetails(partner);
+        } else {
+            System.out.println("Partner not found.");
+        }
     }
-else
 
-    {
-        System.out.println("partner not found");
+    private void showPartnerDetails(Partner partner) {
+        System.out.println("Partner Details:");
+        System.out.println("ID: " + partner.getId());
+        System.out.println("Company Name: " + partner.getCompanyName());
+        System.out.println("Transport Type: " + partner.getTransportType());
+        System.out.println("Geographical Zone: " + partner.getGeographicalZone());
+        System.out.println("Special Conditions: " + partner.getSpecialConditions());
+        System.out.println("Status: " + partner.getStatus());
+        System.out.println("Creation Date: " + partner.getCreationDate());
     }
-}
-
 
     public void addPartner() {
         System.out.println("Enter the company name:");
@@ -78,16 +82,15 @@ else
                 creationDate
         );
 
-        repository.add(partner); // Assuming you have an add method in your repository
-
+        partnerRepository.add(partner);
         System.out.println("Partner added successfully.");
+        showPartnerDetails(partner);
     }
 
     public void updatePartner() {
         System.out.println("Enter the ID of the partner to update:");
         String idInput = scanner.nextLine();
 
-        // Validate UUID format
         UUID id;
         try {
             id = UUID.fromString(idInput);
@@ -111,7 +114,6 @@ else
         System.out.println("Enter the new status:");
         String status = scanner.nextLine();
 
-        // You can set creationDate to the current date or another value
         LocalDate creationDate = LocalDate.now();
 
         Partner partner = new Partner(
@@ -124,14 +126,16 @@ else
                 Date.valueOf(creationDate)
         );
 
-        Partner updatedPartner = repository.update(partner);
+        Partner updatedPartner = partnerRepository.update(partner);
 
         if (updatedPartner != null) {
             System.out.println("Partner updated successfully.");
+            showPartnerDetails(updatedPartner);
         } else {
             System.out.println("Partner update failed.");
         }
     }
+
     public void removePartner() {
         System.out.println("Enter the ID of the partner to remove:");
         String idInput = scanner.nextLine();
@@ -144,7 +148,7 @@ else
             return;
         }
 
-        boolean success = repository.remove(id);
+        boolean success = partnerRepository.remove(id);
 
         if (success) {
             System.out.println("Partner removed successfully.");
@@ -152,6 +156,7 @@ else
             System.out.println("Partner with ID " + id + " not found.");
         }
     }
+
     public void changePartnerStatus() {
         System.out.println("Enter the ID of the partner to change status:");
         String idInput = scanner.nextLine();
@@ -164,7 +169,7 @@ else
             return;
         }
 
-        Partner existingPartner = repository.findById(id);
+        Partner existingPartner = partnerRepository.findById(id);
         if (existingPartner == null) {
             System.out.println("Partner with ID " + id + " not found.");
             return;
@@ -181,13 +186,51 @@ else
             return;
         }
 
-        boolean success = repository.changeStatus(id, newStatus);
+        boolean success = partnerRepository.changeStatus(id, newStatus);
 
         if (success) {
             System.out.println("Partner status changed successfully.");
+            showPartnerDetails(existingPartner); // Display partner details after status change
         } else {
             System.out.println("Failed to change partner status.");
         }
     }
 
+    public void displayPartnerMenu() {
+        boolean running = true;
+
+        while (running) {
+            System.out.println("--- Partner Management ---");
+            System.out.println("1. Display all partners");
+            System.out.println("2. Display partner by name");
+            System.out.println("3. Insert partner");
+            System.out.println("4. Update partner");
+            System.out.println("5. Remove partner");
+            System.out.println("6. Change status of partner");
+            System.out.println("0. Back to Main Menu");
+            System.out.print("Enter your choice: ");
+
+            int choice = getUserChoice();
+            switch (choice) {
+                case 1 -> displayAllPartners();
+                case 2 -> displayPartnerByName();
+                case 3 -> addPartner();
+                case 4 -> updatePartner();
+                case 5 -> removePartner();
+                case 6 -> changePartnerStatus();
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private int getUserChoice() {
+        while (!scanner.hasNextInt()) {
+            System.out.println("That's not a valid number. Please try again.");
+            scanner.next();
+        }
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
+    }
 }
