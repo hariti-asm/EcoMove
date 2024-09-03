@@ -3,6 +3,7 @@ package main.java.ma.wora.presentation.contract;
 import main.java.ma.wora.models.entities.Contract;
 import main.java.ma.wora.models.entities.Partner;
 import main.java.ma.wora.models.enums.ContractStatus;
+import main.java.ma.wora.models.enums.DiscountType;
 import main.java.ma.wora.repositories.ContractRepository;
 import main.java.ma.wora.repositories.PartnerRepository;
 
@@ -65,7 +66,6 @@ public class ContractUi {
         LocalDate startDate;
         LocalDate endDate;
 
-        // Loop to ensure end date is after start date
         while (true) {
             try {
                 System.out.println("Enter the start date (YYYY-MM-DD):");
@@ -113,6 +113,15 @@ public class ContractUi {
             return;
         }
 
+        System.out.println("Enter the discount type (e.g., PERCENTAGE, FIXED_AMOUNT):");
+        DiscountType discountType;
+        try {
+            discountType = DiscountType.valueOf(scanner.nextLine().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid discount type.");
+            return;
+        }
+
         System.out.println("Enter Partner ID:");
         UUID partnerId;
         try {
@@ -130,15 +139,16 @@ public class ContractUi {
         }
 
         Contract contract = new Contract(
-                UUID.randomUUID(),
-                Date.valueOf(startDate),
-                Date.valueOf(endDate),
-                specialRate,
-                agreementConditions,
-                renewable,
-                status,
-                partner
-        );
+                        UUID.randomUUID(),
+                        Date.valueOf(startDate),
+                        Date.valueOf(endDate),
+                        specialRate,
+                        agreementConditions,
+                        renewable,
+                        status,
+                        partner,
+                        discountType
+                );
 
         try {
             contractRepository.createContract(contract);
@@ -147,7 +157,6 @@ public class ContractUi {
             System.err.println("Error inserting contract: " + e.getMessage());
         }
     }
-
     public void getContractById() {
         System.out.println("Enter Contract ID:");
         String input = scanner.nextLine();
@@ -275,20 +284,23 @@ public class ContractUi {
         String renewableInput = scanner.nextLine();
         boolean renewable = renewableInput.isEmpty() ? existingContract.isRenewable() : Boolean.parseBoolean(renewableInput);
 
-        System.out.println("Enter new contract status (e.g., ONGOING, EXPIRED) or press Enter to keep the current value (" + existingContract.getStatus() + "):");
+        System.out.println("Enter new contract status (e.g., Active, terminated, suspended) or press Enter to keep the current value (" + existingContract.getStatus() + "):");
         String statusInput = scanner.nextLine();
         ContractStatus status = statusInput.isEmpty() ? existingContract.getStatus() : ContractStatus.valueOf(statusInput.toUpperCase());
-
+        System.out.println("enter the discount type ( fixed_amount / percentage");
+        String discountTypeInput = scanner.nextLine();
+        DiscountType discountType = discountTypeInput.isEmpty() ? existingContract.getDiscountType() : DiscountType.valueOf(discountTypeInput.toUpperCase());
         Contract updatedContract = new Contract(
-                existingContract.getId(),
-                Date.valueOf(startDate),
-                Date.valueOf(endDate),
-                specialRate,
-                agreementConditions,
-                renewable,
-                status,
-                existingContract.getPartner()
-        );
+                        existingContract.getId(),
+                        Date.valueOf(startDate),
+                        Date.valueOf(endDate),
+                        specialRate,
+                        agreementConditions,
+                        renewable,
+                        status,
+                        existingContract.getPartner(),
+                        discountType
+                );
 
         try {
             contractRepository.updateContract(updatedContract);
