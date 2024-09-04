@@ -177,72 +177,92 @@ public class PromotionUi {
         }
     }
     public void updatePromotion() {
-        System.out.println("Enter Promotion ID to update:");
-        UUID id = UUID.fromString(scanner.nextLine());
-
-        Promotion promotion = promotionRepository.findById(id);
-        if (promotion == null) {
-            System.out.println("Promotion not found.");
-            return;
-        }
-
-        System.out.println("Enter new Promotion Name (leave blank to keep current):");
-        String name = scanner.nextLine();
-        if (!name.isEmpty()) {
-            promotion.setOfferName(name);
-        }
-
-        System.out.println("Enter new Promotion Description (leave blank to keep current):");
-        String description = scanner.nextLine();
-        if (!description.isEmpty()) {
-            promotion.setDescription(description);
-        }
-
-        LocalDate startDate = null;
-        LocalDate endDate = null;
-
-        while (true) {
-            try {
-                System.out.println("Enter new Start Date (YYYY-MM-DD) (leave blank to keep current):");
-                String startDateInput = scanner.nextLine();
-                if (!startDateInput.isEmpty()) {
-                    startDate = LocalDate.parse(startDateInput);
-                    promotion.setStartDate(startDate);
-                }
-
-                System.out.println("Enter new End Date (YYYY-MM-DD) (leave blank to keep current):");
-                String endDateInput = scanner.nextLine();
-                if (!endDateInput.isEmpty()) {
-                    endDate = LocalDate.parse(endDateInput);
-                    promotion.setEndDate(endDate);
-                }
-
-                if (endDate.isAfter(startDate)) {
-                    break;
-                } else {
-                    System.out.println("End date must be after start date. Please re-enter the dates.");
-                }
-            } catch (Exception e) {
-                System.out.println("Invalid date format. Please enter the date in YYYY-MM-DD format.");
-            }
-        }
-
-        System.out.println("Enter new Promotion Status (ACTIVE/ARCHIVED) (leave blank to keep current):");
-        String statusString = scanner.nextLine();
-        if (!statusString.isEmpty()) {
-            try {
-                promotion.setStatus(PromotionStatus.valueOf(statusString.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                System.out.println("Invalid promotion status.");
-                return;
-            }
-        }
+        System.out.print("Enter the ID of the promotional offer to update: ");
+        String idString = scanner.nextLine().trim();
 
         try {
-            promotionRepository.update(promotion);
-            System.out.println("Promotion updated successfully.");
-        } catch (Exception e) {
-            System.err.println("Error updating promotion: " + e.getMessage());
+            UUID id = UUID.fromString(idString);
+            Promotion offer = promotionRepository.findById(id);
+
+            if (offer != null) {
+                System.out.println("Enter new details (press Enter to keep current value):");
+
+                System.out.print("Offer Name [" + offer.getOfferName() + "]: ");
+                String offerName = scanner.nextLine();
+                if (!offerName.isEmpty()) offer.setOfferName(offerName);
+
+                System.out.print("Description [" + offer.getDescription() + "]: ");
+                String description = scanner.nextLine();
+                if (!description.isEmpty()) offer.setDescription(description);
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+                System.out.print("Start Date [" + offer.getStartDate() + "]: ");
+                String startDateStr = scanner.nextLine();
+                if (!startDateStr.isEmpty()) {
+                    try {
+                        LocalDate startDate = LocalDate.parse(startDateStr, formatter);
+                        offer.setStartDate(startDate);
+                    } catch (DateTimeParseException e) {
+                        System.out.println("Invalid date format. Keeping the current value.");
+                    }
+                }
+
+                System.out.print("End Date [" + offer.getEndDate() + "]: ");
+                String endDateStr = scanner.nextLine();
+                if (!endDateStr.isEmpty()) {
+                    try {
+                        LocalDate endDate = LocalDate.parse(endDateStr, formatter);
+                        offer.setEndDate(endDate);
+                    } catch (DateTimeParseException e) {
+                        System.out.println("Invalid date format. Keeping the current value.");
+                    }
+                }
+
+                System.out.print("Reduction Type [" + offer.getDiscountType() + "]: ");
+                String reductionTypeStr = scanner.nextLine();
+                if (!reductionTypeStr.isEmpty()) {
+                    try {
+                        DiscountType reductionType = DiscountType.valueOf(reductionTypeStr.toUpperCase());
+                        offer.setDiscountType(reductionType);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Invalid reduction type. Keeping the current value.");
+                    }
+                }
+
+                System.out.print("Reduction Value [" + offer.getDiscountValue() + "]: ");
+                String reductionValueStr = scanner.nextLine();
+                if (!reductionValueStr.isEmpty()) {
+                    try {
+                        BigDecimal reductionValue = new BigDecimal(reductionValueStr);
+                        offer.setDiscountValue(reductionValue);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid number format. Keeping the current value.");
+                    }
+                }
+
+                System.out.print("Conditions [" + offer.getConditions() + "]: ");
+                String conditions = scanner.nextLine();
+                if (!conditions.isEmpty()) offer.setConditions(conditions);
+
+                System.out.print("Status [" + offer.getStatus() + "]: ");
+                String statusStr = scanner.nextLine();
+                if (!statusStr.isEmpty()) {
+                    try {
+                        PromotionStatus status = PromotionStatus.valueOf(statusStr.toUpperCase());
+                        offer.setStatus(status);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Invalid status. Keeping the current value.");
+                    }
+                }
+
+                promotionRepository.update(offer);
+                System.out.println("Promotional offer updated successfully.");
+            } else {
+                System.out.println("No promotion found with ID: " + idString);
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid UUID format. Please try again.");
         }
     }
 
