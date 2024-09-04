@@ -18,18 +18,7 @@ public class PartnerUi {
         this.partnerRepository = partnerRepository;
     }
 
-    public void displayAllPartners() {
-        List<Partner> partners = partnerRepository.findAll();
 
-        if (partners.isEmpty()) {
-            System.out.println("No partners found.");
-        } else {
-            for (Partner partner : partners) {
-                showPartnerDetails(partner);
-                System.out.println();
-            }
-        }
-    }
 
     public void displayPartnerByName() {
         scanner.nextLine();
@@ -46,16 +35,28 @@ public class PartnerUi {
 
     private void showPartnerDetails(Partner partner) {
         System.out.println("Partner Details:");
-        System.out.println("ID: " + partner.getId());
-        System.out.println("Company Name: " + partner.getCompanyName());
-        System.out.println("Transport Type: " + partner.getTransportType());
-        System.out.println("Geographical Zone: " + partner.getGeographicalZone());
-        System.out.println("Special Conditions: " + partner.getSpecialConditions());
-        System.out.println("Status: " + partner.getStatus());
-        System.out.println("Creation Date: " + partner.getCreationDate());
+        System.out.println("ID: " + (partner.getId() != null ? partner.getId() : "N/A"));
+        System.out.println("Company Name: " + (partner.getCompanyName() != null ? partner.getCompanyName() : "N/A"));
+        System.out.println("Transport Type: " + (partner.getTransportType() != null ? partner.getTransportType() : "N/A"));
+        System.out.println("Geographical Zone: " + (partner.getGeographicalZone() != null ? partner.getGeographicalZone() : "N/A"));
+        System.out.println("Special Conditions: " + (partner.getSpecialConditions() != null ? partner.getSpecialConditions() : "N/A"));
+        System.out.println("Status: " + (partner.getStatus() != null ? partner.getStatus() : "N/A"));
+        System.out.println("Creation Date: " + (partner.getCreationDate() != null ? partner.getCreationDate() : "N/A"));
+    }
+    public void displayAllPartners() {
+        List<String> partnerNames = partnerRepository.findAll();
+        if (partnerNames.isEmpty()) {
+            System.out.println("No partners found!");
+        } else {
+            System.out.println("#------------- All Partners -------------#");
+            int count = 0;
+            for (String name : partnerNames) {
+                System.out.println("Company Name " + ++count + ": " + name);
+            }
+        }
     }
 
-    public void addPartner() {
+   public void addPartner() {
         System.out.println("Enter the company name:");
         String companyName = scanner.nextLine();
 
