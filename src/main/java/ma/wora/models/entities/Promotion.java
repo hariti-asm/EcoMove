@@ -4,20 +4,49 @@ import main.java.ma.wora.models.enums.DiscountType;
 import main.java.ma.wora.models.enums.PromotionStatus;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public class Promotion {
     private UUID id;
     private String offerName;
     private String description;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private DiscountType discountType;
     private BigDecimal discountValue;
     private String conditions;
     private PromotionStatus status;
-    private DiscountType.Contract.Partner partner;
+    private  UUID contract;
+
+    public Promotion(UUID id , String offerName , String description, LocalDate startDate, LocalDate endDate, DiscountType discountType, BigDecimal discountValue, PromotionStatus status, String conditions , UUID contract) {
+        this.id = id;
+        this.offerName = offerName;
+        this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.discountType = discountType;
+        this.discountValue = discountValue;
+        this.status = status;
+        this.conditions = conditions;
+        this.contract = contract;
+    }
+
+
+
+    public UUID getContract() {
+        return contract;
+    }
+
+    public void setContract(UUID contract) {
+        this.contract = contract;
+    }
+
+
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public UUID getId() {
         return id;
@@ -39,19 +68,19 @@ public class Promotion {
         this.description = desc;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date date) {
+    public void setStartDate(LocalDate date) {
         this.startDate = date;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date date) {
+    public void setEndDate(LocalDate date) {
         this.endDate = date;
     }
 
@@ -87,16 +116,4 @@ public class Promotion {
         this.status = status;
     }
 
-    public DiscountType.Contract.Partner getPartner() {
-        return partner;
-    }
-
-    public void setPartner(DiscountType.Contract.Partner partner) {
-        this.partner = partner;
-    }
-
-    public boolean isActive() {
-        Date currentDate = new Date();
-        return startDate != null && endDate != null && currentDate.after(startDate) && currentDate.before(endDate);
-    }
 }

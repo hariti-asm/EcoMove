@@ -4,7 +4,7 @@ import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.sql.Date;
 import java.util.UUID;
 
 public class Ticket {
@@ -12,63 +12,75 @@ public class Ticket {
     private TransportType transportType;
     private BigDecimal purchasePrice;
     private BigDecimal sellingPrice;
-    private LocalDateTime saleDate;
+    private Date saleDate;  // Use java.sql.Date
     private TicketStatus status;
-    private Promotion promotion;
     private Integer discount;
-    UUID getId() {
+    private Contract contract;
+
+    public Ticket() {
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    TransportType getTransportType() {
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public TransportType getTransportType() {
         return transportType;
     }
 
-    void setTransportType(TransportType type) {
-        this.transportType = type;
+    public void setTransportType(TransportType transportType) {
+        this.transportType = transportType;
     }
 
-    BigDecimal getPurchasePrice() {
+    public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
 
-    void setPurchasePrice(BigDecimal price) {
-        this.purchasePrice = price;
+    public void setPurchasePrice(BigDecimal purchasePrice) {
+        this.purchasePrice = purchasePrice;
     }
 
-    BigDecimal getSellingPrice() {
+    public BigDecimal getSellingPrice() {
         return sellingPrice;
     }
 
-    void setSellingPrice(BigDecimal price) {
-        this.sellingPrice = price;
+    public void setSellingPrice(BigDecimal sellingPrice) {
+        this.sellingPrice = sellingPrice;
     }
 
-    LocalDateTime getSaleDate() {
-        return saleDate;
+    public Date getSaleDate() {
+        return saleDate;  // No need for casting
     }
 
-    void setSaleDate(LocalDateTime date) {
-        this.saleDate = date;
+    public void setSaleDate(Date saleDate) {
+        this.saleDate = saleDate;
     }
 
-    TicketStatus getStatus() {
+    public TicketStatus getStatus() {
         return status;
     }
 
-    void setStatus(TicketStatus status) {
+    public void setStatus(TicketStatus status) {
         this.status = status;
     }
 
-    Promotion getPromotion() {
-        return promotion;
+    public Integer getDiscount() {
+        return discount;
     }
 
-    void setPromotion(Promotion promotion) {
-        this.promotion = promotion;
+    public void setDiscount(Integer discount) {
+        this.discount = discount;
     }
 
-    BigDecimal calculateProfit() {
-        return sellingPrice.subtract(purchasePrice);
+    public Contract getContract() {
+        return contract;
+    }
+
+    public void setContract(Contract contract) {
+        this.contract = contract;
     }
 }

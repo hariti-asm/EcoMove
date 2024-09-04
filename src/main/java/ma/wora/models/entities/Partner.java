@@ -3,7 +3,6 @@ package main.java.ma.wora.models.entities;
 import main.java.ma.wora.models.enums.PartnerStatus;
 import main.java.ma.wora.models.enums.TransportType;
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
@@ -15,18 +14,6 @@ public class Partner {
     private String specialConditions;
     private PartnerStatus status;
     private Date creationDate;
-    public Partner(UUID id, String companyName, TransportType transportType,
-                   String geographicalZone, String specialConditions,
-                   PartnerStatus status, Date creationDate) {
-        this.id = id;
-        this.companyName = companyName;
-        this.transportType = transportType;
-        this.geographicalZone = geographicalZone;
-        this.specialConditions = specialConditions;
-        this.status = status;
-        this.creationDate = creationDate;
-    }
-
     public Partner(UUID id, String companyName, String transportType, String geographicalZone, String specialConditions, String status, java.sql.Date creationDate) {
         this.id = id;
         this.companyName = companyName;
@@ -38,6 +25,9 @@ public class Partner {
     }
 
 
+
+    public Partner(UUID id, String companyName, TransportType transportType, String geographicalZone, String specialConditions, PartnerStatus partnerStatus, Date creationDate) {
+    }
 
 
     public UUID getId() {

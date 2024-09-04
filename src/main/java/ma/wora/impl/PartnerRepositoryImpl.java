@@ -3,10 +3,10 @@ package main.java.ma.wora.impl;
 import main.java.ma.wora.config.JdbcPostgresqlConnection;
 import main.java.ma.wora.models.entities.Partner;
 import main.java.ma.wora.models.enums.PartnerStatus;
-import main.java.ma.wora.models.enums.TransportType;
 import main.java.ma.wora.repositories.PartnerRepository;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,47 +19,59 @@ public class PartnerRepositoryImpl implements PartnerRepository {
     }
 
     @Override
-    public List<Partner> findAll() {
-        final List<Partner> partners = new ArrayList<>();
-        final String query = "SELECT * FROM " + tableName;
 
-        try (final Statement stmt = connection.createStatement()) {
-            final ResultSet resultSet = stmt.executeQuery(query);
-            while (resultSet.next()) {
-                final Partner partner = new Partner(
-                        UUID.fromString(resultSet.getString("id")),
-                        resultSet.getString("company_name"),
-                        TransportType.valueOf(resultSet.getString("transport_type").toUpperCase()),
-                        resultSet.getString("geographical_zone"),
-                        resultSet.getString("special_conditions"),
-                        PartnerStatus.valueOf(resultSet.getString("status").toUpperCase()),
-                        resultSet.getDate("creation_date")
-                );
-                partners.add(partner);
+    public List<String> findAll() {
+        List<String> partners = new ArrayList<>();
+        String query = "SELECT company_name FROM "+tableName;
+
+        try (Statement stmt = connection.createStatement()){
+            ResultSet resultSet = stmt.executeQuery(query);
+            while (resultSet.next()){
+                partners.add(resultSet.getString("company_name"));
             }
-            return partners;
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return partners;
     }
     @Override
-    public Partner findByName(String name) {
-        final String query = "SELECT * FROM " + tableName + " WHERE company_name = '" + name + "'";
-        try (final Statement stmt = connection.createStatement()) {
-            final ResultSet resultSet = stmt.executeQuery(query);
-            if (resultSet.next()) {
-                return new Partner(
-                        UUID.fromString(resultSet.getString("id")),
-                        resultSet.getString("company_name"),
-                        TransportType.valueOf(resultSet.getString("transport_type").toUpperCase()),
-                        resultSet.getString("geographical_zone"),
-                        resultSet.getString("special_conditions"),
-                        PartnerStatus.valueOf(resultSet.getString("status").toUpperCase()),
-                        resultSet.getDate("creation_date")
-                );
-            }
+    public void UpdatePartnerStatus(UUID partnerId, PartnerStatus newStatus) {
+
+        String query = "UPDATE "+tableName+" SET status = ? WHERE id = id::uuid";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query)){
+
+            pstmt.setString(1, newStatus.name());
+
+            pstmt.executeUpdate();
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public Partner findByName(String companyName) {
+        String query = "SELECT * FROM partners WHERE company_name = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, companyName);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                UUID id = UUID.fromString(rs.getString("id"));
+                String name = rs.getString("company_name");
+                String transportType = rs.getString("transport_type");
+                String geographicalZone = rs.getString("geographical_zone");
+                String specialConditions = rs.getString("special_conditions");
+                String status = rs.getString("status");
+                LocalDate creationDate = rs.getDate("creation_date").toLocalDate();
+
+                Partner partner = new Partner(id, name, transportType, geographicalZone, specialConditions, status, Date.valueOf(creationDate));
+                return partner;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -107,7 +119,14 @@ public Partner update(Partner partner) {
         pstmt.setString(3, partner.getGeographicalZone());
         pstmt.setString(4, partner.getSpecialConditions());
         pstmt.setString(5, String.valueOf(partner.getStatus()));
-        pstmt.setDate(6, Date.valueOf(String.valueOf(partner.getCreationDate())));
+
+        // Convert java.util.Date to java.sql.Date
+        if (partner.getCreationDate() != null) {
+            pstmt.setDate(6, new java.sql.Date(partner.getCreationDate().getTime()));
+        } else {
+            pstmt.setNull(6, java.sql.Types.DATE);
+        }
+
         pstmt.setObject(7, partner.getId());
 
         int rowsAffected = pstmt.executeUpdate();
@@ -132,11 +151,9 @@ public Partner update(Partner partner) {
             int rowsAffected = stmt.executeUpdate(query);
 
             if (rowsAffected > 0) {
-                // If a partner was removed, return true
                 System.out.println("Partner with ID " + id + " was removed successfully.");
                 return true;
             } else {
-                // If no partner was found to remove, return false
                 System.out.println("Partner with ID " + id + " not found.");
                 return false;
             }

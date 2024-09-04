@@ -1,49 +1,65 @@
 package main.java.ma.wora;
 
+import main.java.ma.wora.impl.PromotionRepositoryImpl;
+import main.java.ma.wora.impl.TicketRepositoryImpl;
+import main.java.ma.wora.presentation.contract.ContractUi;
+import main.java.ma.wora.presentation.partner.PartnerUi;
+import main.java.ma.wora.impl.ContractRepositoryImpl;
 import main.java.ma.wora.impl.PartnerRepositoryImpl;
-import main.java.ma.wora.presentation.Menu;
-import main.java.ma.wora.presentation.PartnerUi;
+import main.java.ma.wora.presentation.promotion.PromotionMenu;
+import main.java.ma.wora.presentation.promotion.PromotionUi;
+import main.java.ma.wora.presentation.ticket.TicketUi;
+import main.java.ma.wora.repositories.ContractRepository;
 import main.java.ma.wora.repositories.PartnerRepository;
+import main.java.ma.wora.repositories.PromotionRepository;
+import main.java.ma.wora.repositories.TicketRepository;
 
 import java.sql.SQLException;
 import java.util.Scanner;
 
+
+
 public class Main {
-    private static PartnerRepository repository = null;
+
+    private static PartnerRepository partnerRepository;
+    private static ContractRepository contractRepository;
+    private static PromotionRepository promotionRepository;
+    private static TicketRepository ticketRepository;
 
     static {
         try {
-            repository = new PartnerRepositoryImpl();
+            partnerRepository = new PartnerRepositoryImpl();
+            contractRepository = new ContractRepositoryImpl(partnerRepository);
+            ticketRepository = new TicketRepositoryImpl();
+            promotionRepository = new PromotionRepositoryImpl();
         } catch (SQLException e) {
-
+            System.err.println("Failed to initialize repositories: " + e.getMessage());
         }
     }
 
     private static final Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) {
-        final Menu menu = new Menu();
-        final PartnerUi partnerUi = new PartnerUi(repository); // Reuse the static repository
+    public static void main(String[] args) throws SQLException {
+
+        final PartnerUi partnerUi = new PartnerUi(partnerRepository);
+        final ContractUi contractUi = new ContractUi(contractRepository, partnerRepository);
+          final TicketUi ticketUi = new TicketUi(ticketRepository);
+          final  PromotionUi promotionUi = new PromotionUi(promotionRepository);
         boolean running = true;
 
         while (running) {
-            menu.displayMenu();
+            displayMainMenu();
             int choice = getUserChoice();
             switch (choice) {
-                case 6 : partnerUi.changePartnerStatus();
-                case 5 : partnerUi.removePartner();
-                case 4 : partnerUi.updatePartner();
-                case 3: partnerUi.addPartner();
-                case 2: partnerUi.displayPartnerByName();
-                case 1:
-                    partnerUi.displayAllPartners();
-                    break;
-                case 0:
+                case 1 -> partnerUi.displayPartnerMenu();
+                case 2 -> contractUi.displayContractMenu();
+                case 3 -> ticketUi.displayTicketMenu();
+                case 4 -> promotionUi.displayPromotionMenu();
+                case 0 -> {
                     running = false;
                     System.out.println("Exiting the program. Goodbye!");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
             }
         }
         scanner.close();
@@ -55,5 +71,16 @@ public class Main {
             scanner.next();
         }
         return scanner.nextInt();
+    }
+    private static void displayMainMenu() {
+        System.out.println("--- Management System ---");
+        System.out.println("1. Partner Management");
+        System.out.println("2. Contract Management");
+        System.out.println("3. Ticket Management");
+        System.out.println("4. Promotion Management");
+
+
+        System.out.println("0. Exit");
+        System.out.print("Enter your choice: ");
     }
 }

@@ -4,19 +4,42 @@ import main.java.ma.wora.models.enums.ContractStatus;
 import main.java.ma.wora.models.enums.DiscountType;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.sql.Date; // Use java.sql.Date for SQL operations
 import java.util.UUID;
 
 public class Contract {
-    UUID id;
-    Date startDate;
-    Date endDate;
-    BigDecimal specialRate;
-    String agreementConditions;
-    boolean renewable;
-    ContractStatus status;
-    Ticket ticket;
-    DiscountType discountType;
+    private UUID id;
+    private Date startDate;
+    private Date endDate;
+    private BigDecimal specialRate;
+    private String agreementConditions;
+    private boolean renewable;
+    private ContractStatus status;
+    private Partner partner;
+    private  DiscountType discountType;
+
+    public Contract(UUID id, Date startDate, Date endDate, BigDecimal specialRate, String agreementConditions,
+                    boolean renewable, ContractStatus status, Partner partner , DiscountType discountType) {
+        this.id = id;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.specialRate = specialRate;
+        this.agreementConditions = agreementConditions;
+        this.renewable = renewable;
+        this.status = status;
+        this.partner = partner;
+        this.discountType = discountType;
+
+    }
+
+    public DiscountType getDiscountType() {
+        return discountType;
+    }
+
+    public void setDiscountType(DiscountType discountType) {
+        this.discountType = discountType;
+    }
+
 
 
     public UUID getId() {
@@ -75,19 +98,13 @@ public class Contract {
         this.status = status;
     }
 
-    public Ticket getTicket() {
-        return ticket;
+    public Partner getPartner() {
+        return partner;
     }
 
-    public void setTicket(Ticket ticket) {
-        this.ticket = ticket;
+    public void setPartner(Partner partner) {
+        this.partner = partner;
     }
 
-    public DiscountType getDiscountType() {
-        return discountType;
-    }
 
-    public void setDiscountType(DiscountType discountType) {
-        this.discountType = discountType;
-    }
 }
