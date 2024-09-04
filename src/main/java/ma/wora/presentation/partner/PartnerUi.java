@@ -2,6 +2,7 @@ package main.java.ma.wora.presentation.partner;
 
 import main.java.ma.wora.models.entities.Partner;
 import main.java.ma.wora.models.enums.PartnerStatus;
+import main.java.ma.wora.models.enums.TransportType;
 import main.java.ma.wora.repositories.PartnerRepository;
 
 import java.sql.Date;
@@ -55,7 +56,37 @@ public class PartnerUi {
             }
         }
     }
+    public void UpdatePartnerStatus(){
 
+        System.out.println("#-------------- Update Partner Status --------------# ");
+
+        System.out.print("Enter ID of partner :");
+        String partnerIdInput = scanner.nextLine();
+        UUID partnerId;
+        try {
+            partnerId = UUID.fromString(partnerIdInput);
+
+        } catch (IllegalArgumentException e){
+            System.out.println("invalid uuid format !");
+            return;
+
+        }
+
+        System.out.println("Enter New status ");
+        String StatusInput = scanner.nextLine().trim().toUpperCase();
+
+        PartnerStatus newStatus ;
+        try {
+            newStatus = PartnerStatus.valueOf(StatusInput);
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("invalid status !");
+            return;
+        }
+
+        partnerRepository.UpdatePartnerStatus(partnerId, newStatus);
+
+    }
    public void addPartner() {
         System.out.println("Enter the company name:");
         String companyName = scanner.nextLine();
@@ -100,38 +131,61 @@ public class PartnerUi {
             return;
         }
 
-        System.out.println("Enter the new company name:");
+        // Fetch current partner details from the database
+        Partner existingPartner = partnerRepository.findById(id);
+        if (existingPartner == null) {
+            System.out.println("Partner not found.");
+            return;
+        }
+
+        // Prompt for new values, with the option to press Enter to keep the current ones
+        System.out.println("Enter the new company name (press Enter to keep current: " + existingPartner.getCompanyName() + "):");
         String companyName = scanner.nextLine();
+        if (companyName.isEmpty()) {
+            companyName = existingPartner.getCompanyName(); // Keep current value
+        }
 
-        System.out.println("Enter the new transport type:");
+        System.out.println("Enter the new transport type (press Enter to keep current: " + existingPartner.getTransportType() + "):");
         String transportType = scanner.nextLine();
+        if (transportType.isEmpty()) {
+            transportType = String.valueOf(existingPartner.getTransportType()); // Keep current value
+        }
 
-        System.out.println("Enter the new geographical zone:");
+        System.out.println("Enter the new geographical zone (press Enter to keep current: " + existingPartner.getGeographicalZone() + "):");
         String geographicalZone = scanner.nextLine();
+        if (geographicalZone.isEmpty()) {
+            geographicalZone = existingPartner.getGeographicalZone(); // Keep current value
+        }
 
-        System.out.println("Enter any new special conditions:");
+        System.out.println("Enter any new special conditions (press Enter to keep current: " + existingPartner.getSpecialConditions() + "):");
         String specialConditions = scanner.nextLine();
+        if (specialConditions.isEmpty()) {
+            specialConditions = existingPartner.getSpecialConditions(); // Keep current value
+        }
 
-        System.out.println("Enter the new status:");
+        System.out.println("Enter the new status (press Enter to keep current: " + existingPartner.getStatus() + "):");
         String status = scanner.nextLine();
+        if (status.isEmpty()) {
+            status = String.valueOf(existingPartner.getStatus()); // Keep current value
+        }
 
-        LocalDate creationDate = LocalDate.now();
+        java.util.Date creationDate = existingPartner.getCreationDate(); // Assuming the creation date stays the same
 
-        Partner partner = new Partner(
+        Partner updatedPartner = new Partner(
                 id,
                 companyName,
                 transportType,
                 geographicalZone,
                 specialConditions,
                 status,
-                Date.valueOf(creationDate)
+                Date.valueOf(String.valueOf(creationDate))
         );
 
-        Partner updatedPartner = partnerRepository.update(partner);
+        Partner result = partnerRepository.update(updatedPartner);
 
-        if (updatedPartner != null) {
+        if (result != null) {
             System.out.println("Partner updated successfully.");
-            showPartnerDetails(updatedPartner);
+            showPartnerDetails(result);
         } else {
             System.out.println("Partner update failed.");
         }
