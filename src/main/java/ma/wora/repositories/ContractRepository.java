@@ -1,23 +1,16 @@
 package main.java.ma.wora.repositories;
 
-import main.java.ma.wora.models.enums.DiscountType;
+import main.java.ma.wora.models.entities.Contract;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-public class ContractRepository {
-private final List<DiscountType.Contract> contracts= new ArrayList<DiscountType.Contract>();
-
-
-    public void addContract(DiscountType.Contract contract) {
-        contracts.add(contract);
-    }
-
-    public void removeContract(DiscountType.Contract contract) {
-        contracts.remove(contract);
-    }
-
-    public List<DiscountType.Contract> getContracts() {
-        return contracts;
-    }
+public interface ContractRepository {
+    Contract createContract(Contract contract);
+     Contract getContractById(UUID id);
+    boolean updateContract(UUID contractId, Contract updatedContract);
+    boolean deleteContract(UUID id);
+    List<Contract> getAllContracts();
+    List<Contract> getTerminatedContracts();
+    List<Contract> getContractsByPartner(UUID partnerId);
 }

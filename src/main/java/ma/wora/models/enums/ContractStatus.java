@@ -1,7 +1,7 @@
 package main.java.ma.wora.models.enums;
 
 public enum ContractStatus {
-    ONGOING,
+    ACTIVE,
     TERMINATED,
     SUSPENDED
 }

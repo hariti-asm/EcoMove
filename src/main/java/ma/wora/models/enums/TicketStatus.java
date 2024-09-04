@@ -2,5 +2,5 @@ package main.java.ma.wora.models.enums;
 
 public enum TicketStatus {
 
-SOLD,CANCELLED,PENDING,REJECTED
+CANCELLED,PENDING,REJECTED, BOOKED,CHECKED_IN
 }

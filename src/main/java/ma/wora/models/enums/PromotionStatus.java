@@ -1,5 +1,5 @@
 package main.java.ma.wora.models.enums;
 
 public enum PromotionStatus {
-    ACTIVE, INACTIVE,SUSPENDED
+    ACTIVE, INACTIVE,SUSPENDED,UPCOMING
 }
