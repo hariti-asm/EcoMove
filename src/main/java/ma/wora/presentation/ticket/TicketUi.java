@@ -24,6 +24,8 @@ public class TicketUi {
     }
 
     public void addTicket() {
+        UUID contractId = getContractIdInput();
+
         System.out.println("Enter Transport Type (e.g., BUS, TRAIN):");
         TransportType transportType = TransportType.valueOf(scanner.nextLine().trim().toUpperCase());
 
@@ -53,6 +55,17 @@ public class TicketUi {
             System.out.println("Failed to add ticket.");
         }
     }
+    private UUID getContractIdInput() {
+        while (true) {
+            System.out.print("Enter Contract ID: ");
+            String input = scanner.nextLine().trim();
+            try {
+                return UUID.fromString(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid UUID format. Please try again.");
+            }
+        }
+    }
     private void deleteTicket() {
         System.out.println("Enter Ticket ID to delete:");
         UUID ticketId = UUID.fromString(scanner.next().trim());
@@ -75,20 +88,35 @@ public class TicketUi {
         Ticket ticket = ticketRepository.findById(id);
 
         if (ticket != null) {
-            System.out.println("Enter new Transport Type (e.g., BUS, TRAIN):");
-            ticket.setTransportType(TransportType.valueOf(scanner.nextLine().trim().toUpperCase()));
+            System.out.println("Enter new Transport Type (e.g., BUS, TRAIN) or press Enter to keep the current value:");
+            String transportTypeInput = scanner.nextLine().trim();
+            if (!transportTypeInput.isEmpty()) {
+                ticket.setTransportType(TransportType.valueOf(transportTypeInput.toUpperCase()));
+            }
 
-            System.out.println("Enter new Purchase Price:");
-            ticket.setPurchasePrice(new BigDecimal(scanner.nextLine().trim()));
+            System.out.println("Enter new Purchase Price or press Enter to keep the current value:");
+            String purchasePriceInput = scanner.nextLine().trim();
+            if (!purchasePriceInput.isEmpty()) {
+                ticket.setPurchasePrice(new BigDecimal(purchasePriceInput));
+            }
 
-            System.out.println("Enter new Selling Price:");
-            ticket.setSellingPrice(new BigDecimal(scanner.nextLine().trim()));
+            System.out.println("Enter new Selling Price or press Enter to keep the current value:");
+            String sellingPriceInput = scanner.nextLine().trim();
+            if (!sellingPriceInput.isEmpty()) {
+                ticket.setSellingPrice(new BigDecimal(sellingPriceInput));
+            }
 
-            System.out.println("Enter new Sale Date (YYYY-MM-DDTHH:MM:SS):");
-            ticket.setSaleDate(Date.valueOf(LocalDate.parse(scanner.nextLine())));
+            System.out.println("Enter new Sale Date (YYYY-MM-DDTHH:MM:SS) or press Enter to keep the current value:");
+            String saleDateInput = scanner.nextLine().trim();
+            if (!saleDateInput.isEmpty()) {
+                ticket.setSaleDate(Date.valueOf(LocalDate.parse(saleDateInput)));
+            }
 
-            System.out.println("Enter new Status (e.g., SOLD, AVAILABLE):");
-            ticket.setStatus(TicketStatus.valueOf(scanner.nextLine().trim().toUpperCase()));
+            System.out.println("Enter new Status (e.g., SOLD, AVAILABLE) or press Enter to keep the current value:");
+            String statusInput = scanner.nextLine().trim();
+            if (!statusInput.isEmpty()) {
+                ticket.setStatus(TicketStatus.valueOf(statusInput.toUpperCase()));
+            }
 
             Ticket updatedTicket = ticketRepository.update(ticket);
             if (updatedTicket != null) {
