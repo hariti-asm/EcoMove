@@ -31,7 +31,7 @@ public class PartnerService {
    public List<String> findAllPartners() {
         return  partnerRepository.findAll();
    }
-public boolean updatePartnerStatus( UUID id, PartnerStatus status) {
-        return  partnerRepository.changeStatus(id, status);
-}
+    public boolean updatePartnerStatus( UUID id, PartnerStatus status) {
+            return  partnerRepository.changeStatus(id, status);
+    }
 }
