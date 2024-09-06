@@ -48,7 +48,6 @@ public class ContractService {
         existingContract.setPartner(updatedContract.getPartner() != null ? updatedContract.getPartner() : existingContract.getPartner());
         existingContract.setDiscountType(updatedContract.getDiscountType() != null ? updatedContract.getDiscountType() : existingContract.getDiscountType());
 
-        // Save the updated contract back to the repository
         return contractRepository.updateContract(id, existingContract);
     }
 }
