@@ -15,7 +15,7 @@ public class Ticket {
     private Date saleDate;  // Use java.sql.Date
     private TicketStatus status;
     private Integer discount;
-    private Contract contract;
+    private UUID contract;
 
     public Ticket() {
     }
@@ -76,11 +76,11 @@ public class Ticket {
         this.discount = discount;
     }
 
-    public Contract getContract() {
+    public UUID getContract() {
         return contract;
     }
 
-    public void setContract(Contract contract) {
+    public void setContract(UUID contract) {
         this.contract = contract;
     }
 }

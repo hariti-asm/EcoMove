@@ -1,12 +1,12 @@
 package main.java.ma.wora.presentation.promotion;
 
+import main.java.ma.wora.models.entities.Contract;
 import main.java.ma.wora.models.entities.Promotion;
 import main.java.ma.wora.models.enums.DiscountType;
-import main.java.ma.wora.repositories.PromotionRepository;
+import main.java.ma.wora.models.enums.PromotionStatus;
+import main.java.ma.wora.services.PromotionService;
 
 import java.math.BigDecimal;
-import java.sql.Date;import main.java.ma.wora.models.enums.PromotionStatus;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -16,13 +16,13 @@ import java.util.UUID;
 
 public class PromotionUi {
     private static final Scanner scanner = new Scanner(System.in);
-    private final PromotionRepository promotionRepository;
+    private final PromotionService promotionService;
 
-    public PromotionUi(PromotionRepository promotionRepository) {
-        this.promotionRepository = promotionRepository;
+    public PromotionUi(PromotionService promotionService) {
+        this.promotionService = promotionService;
     }
 
-    public void addPromotion(){
+    public void addPromotion() {
         System.out.println("#------------ Add New Promotion : -------------#");
 
         UUID id = UUID.randomUUID();
@@ -33,14 +33,12 @@ public class PromotionUi {
         LocalDate endDate = getEndDateInput(startDate);
         PromotionStatus offerStatus = getPromotionStatusInput();
         BigDecimal reductionValue = getPromotionDiscountValueInput();
-        DiscountType  reductionType =getDiscountTypeInput();
+        DiscountType reductionType = getDiscountTypeInput();
         String conditions = getConditionsInput();
 
-
-        Promotion newPromotionalOffer = new Promotion(
-                UUID.randomUUID(),
+        Promotion newPromotion = new Promotion(
+                id,
                 offerName,
-
                 description,
                 startDate,
                 endDate,
@@ -51,9 +49,8 @@ public class PromotionUi {
                 contractId
         );
 
-        promotionRepository.create(newPromotionalOffer);
-        System.out.println("New PromotionalOffer added successfully!");
-
+        promotionService.createPromotion(newPromotion);
+        System.out.println("New Promotion added successfully!");
     }
 
     private BigDecimal getPromotionDiscountValueInput() {
@@ -63,9 +60,8 @@ public class PromotionUi {
             if (!input.isEmpty()) {
                 return new BigDecimal(input);
             }
-            System.out.println("discount value cannot be empty. Please try again.");
+            System.out.println("Discount value cannot be empty. Please try again.");
         }
-
     }
 
     private UUID getContractIdInput() {
@@ -90,7 +86,6 @@ public class PromotionUi {
             System.out.println("Offer name cannot be empty. Please try again.");
         }
     }
-
 
     private String getDescriptionInput() {
         System.out.print("Enter Description: ");
@@ -127,35 +122,15 @@ public class PromotionUi {
             }
         }
     }
- private  DiscountType getDiscountTypeInput(){
-     while (true) {
-         System.out.print("Enter Reduction Type (PERCENTAGE or FIXED_AMOUNT): ");
-         String input = scanner.nextLine().trim().toUpperCase();
-         try {
-             return DiscountType.valueOf(input);
-         } catch (IllegalArgumentException e) {
-             System.out.println("Invalid reduction type. Please enter PERCENTAGE or FIXED_AMOUNT.");
-         }
-     }
 
- }
-
-
-    private BigDecimal getDiscountValueInput(DiscountType DiscountType) {
+    private DiscountType getDiscountTypeInput() {
         while (true) {
-            System.out.print("Enter Reduction Value: ");
-            String input = scanner.nextLine().trim();
+            System.out.print("Enter Reduction Type (PERCENTAGE or FIXED_AMOUNT): ");
+            String input = scanner.nextLine().trim().toUpperCase();
             try {
-                BigDecimal value = new BigDecimal(input);
-                if (value.compareTo(BigDecimal.ZERO) <= 0) {
-                    System.out.println("Reduction value must be positive. Please try again.");
-                } else if (DiscountType == DiscountType.PERCENTAGE && value.compareTo(new BigDecimal("100")) > 0) {
-                    System.out.println("Percentage reduction cannot exceed 100%. Please try again.");
-                } else {
-                    return value;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid number format. Please enter a valid number.");
+                return DiscountType.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid reduction type. Please enter PERCENTAGE or FIXED_AMOUNT.");
             }
         }
     }
@@ -176,13 +151,14 @@ public class PromotionUi {
             }
         }
     }
+
     public void updatePromotion() {
         System.out.print("Enter the ID of the promotional offer to update: ");
         String idString = scanner.nextLine().trim();
 
         try {
             UUID id = UUID.fromString(idString);
-            Promotion offer = promotionRepository.findById(id);
+            Promotion offer = promotionService.getPromotionById(id);
 
             if (offer != null) {
                 System.out.println("Enter new details (press Enter to keep current value):");
@@ -256,7 +232,7 @@ public class PromotionUi {
                     }
                 }
 
-                promotionRepository.update(offer);
+                promotionService.updatePromotion(offer);
                 System.out.println("Promotional offer updated successfully.");
             } else {
                 System.out.println("No promotion found with ID: " + idString);
@@ -270,14 +246,14 @@ public class PromotionUi {
         System.out.println("Enter Promotion ID to delete:");
         UUID id = UUID.fromString(scanner.nextLine());
 
-        Promotion promotion = promotionRepository.findById(id);
+        Promotion promotion = promotionService.getPromotionById(id);
         if (promotion == null) {
             System.out.println("Promotion not found.");
             return;
         }
 
         try {
-            promotionRepository.delete(promotion);
+            promotionService.deletePromotion(promotion);
             System.out.println("Promotion deleted successfully.");
         } catch (Exception e) {
             System.err.println("Error deleting promotion: " + e.getMessage());
@@ -288,64 +264,71 @@ public class PromotionUi {
         System.out.println("Enter Promotion ID:");
         UUID id = UUID.fromString(scanner.nextLine());
 
-        Promotion promotion = promotionRepository.findById(id);
-        if (promotion == null) {
-            System.out.println("Promotion not found.");
-            return;
+        Promotion promotion = promotionService.getPromotionById(id);
+        if (promotion != null) {
+            System.out.println("Promotion Details:");
+            System.out.println("ID: " + promotion.getId());
+            System.out.println("Offer Name: " + promotion.getOfferName());
+            System.out.println("Description: " + promotion.getDescription());
+            System.out.println("Start Date: " + promotion.getStartDate());
+            System.out.println("End Date: " + promotion.getEndDate());
+            System.out.println("Discount Type: " + promotion.getDiscountType());
+            System.out.println("Discount Value: " + promotion.getDiscountValue());
+            System.out.println("Status: " + promotion.getStatus());
+            System.out.println("Conditions: " + promotion.getConditions());
+            System.out.println("Contract ID: " + promotion.getContract());
+        } else {
+            System.out.println("No promotion found with ID: " + id);
         }
-
-        System.out.println("Promotion Details:");
-        System.out.println("ID: " + promotion.getId());
-        System.out.println("Name: " + promotion.getOfferName());
-        System.out.println("Description: " + promotion.getDescription());
-        System.out.println("Start Date: " + promotion.getStartDate());
-        System.out.println("End Date: " + promotion.getEndDate());
-        System.out.println("Status: " + promotion.getStatus());
     }
 
     public void listAllPromotions() {
-        List<Promotion> promotions = promotionRepository.findAll();
+        System.out.println("Listing all promotions:");
+        List<Promotion> promotions = promotionService.getAllPromotions();
         if (promotions.isEmpty()) {
-            System.out.println("No promotions found.");
-            return;
-        }
-
-        for (Promotion promotion : promotions) {
-            displayPromotionDetails(promotion);
+            System.out.println("No promotions available.");
+        } else {
+            for (Promotion promotion : promotions) {
+                System.out.println("ID: " + promotion.getId());
+                System.out.println("Offer Name: " + promotion.getOfferName());
+                System.out.println("Description: " + promotion.getDescription());
+                System.out.println("Start Date: " + promotion.getStartDate());
+                System.out.println("End Date: " + promotion.getEndDate());
+                System.out.println("Discount Type: " + promotion.getDiscountType());
+                System.out.println("Discount Value: " + promotion.getDiscountValue());
+                System.out.println("Status: " + promotion.getStatus());
+                System.out.println("Conditions: " + promotion.getConditions());
+                System.out.println("Contract ID: " + promotion.getContract());
+                System.out.println("------------------------------------");
+            }
         }
     }
 
-    public void listArchivedPromotions() {
-        List<Promotion> promotions = promotionRepository.findArchived();
-        if (promotions.isEmpty()) {
+
+
+    public void getArchivedPromotions() {
+        List<Promotion> archivedPromotions = promotionService.getArchivedPromotions();
+        if (archivedPromotions.isEmpty()) {
             System.out.println("No archived promotions found.");
             return;
         }
+        for (Promotion promotion : archivedPromotions) {
+            System.out.println("ID: " + promotion.getId());
+            System.out.println("Offer Name: " + promotion.getOfferName());
+            System.out.println("Description: " + promotion.getDescription());
+            System.out.println("Start Date: " + promotion.getStartDate());
+            System.out.println("End Date: " + promotion.getEndDate());
+            System.out.println("Discount Type: " + promotion.getDiscountType());
+            System.out.println("Discount Value: " + promotion.getDiscountValue());
+            System.out.println("Status: " + promotion.getStatus());
+            System.out.println("Conditions: " + promotion.getConditions());
+            System.out.println("Contract ID: " + promotion.getContract());
 
-        for (Promotion promotion : promotions) {
-            displayPromotionDetails(promotion);
         }
     }
 
-    private void displayPromotionDetails(Promotion promotion) {
-        System.out.println("Promotion Details:");
-        System.out.println("ID: " + promotion.getId());
-        System.out.println("Name: " + promotion.getOfferName());
-        System.out.println("Description: " + promotion.getDescription());
-        System.out.println("Start Date: " + promotion.getStartDate());
-        System.out.println("End Date: " + promotion.getEndDate());
-        System.out.println("Status: " + promotion.getStatus());
-        System.out.println();
-    }
-    private int getUserChoice() {
-        while (!scanner.hasNextInt()) {
-            System.out.println("That's not a valid number. Please try again.");
-            scanner.next();
-        }
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-        return choice;
-    }
+
+
     public void displayPromotionMenu() {
         boolean running = true;
 
@@ -366,12 +349,20 @@ public class PromotionUi {
                 case 2 -> updatePromotion();
                 case 3 -> deletePromotion();
                 case 4 -> getPromotionById();
-                case 5 -> listAllPromotions();
-                case 6 -> listArchivedPromotions();
+                case 5 ->listAllPromotions();
+                case 6 -> getArchivedPromotions();
                 case 0 -> running = false;
                 default -> System.out.println("Invalid choice. Please try again.");
             }
         }
     }
-
+    private int getUserChoice() {
+        while (!scanner.hasNextInt()) {
+            System.out.println("That's not a valid number. Please try again.");
+            scanner.next();
+        }
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
+    }
 }
