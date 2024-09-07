@@ -6,7 +6,6 @@ import main.java.ma.wora.presentation.contract.ContractUi;
 import main.java.ma.wora.presentation.partner.PartnerUi;
 import main.java.ma.wora.impl.ContractRepositoryImpl;
 import main.java.ma.wora.impl.PartnerRepositoryImpl;
-import main.java.ma.wora.presentation.promotion.PromotionMenu;
 import main.java.ma.wora.presentation.promotion.PromotionUi;
 import main.java.ma.wora.presentation.ticket.TicketUi;
 import main.java.ma.wora.repositories.ContractRepository;
