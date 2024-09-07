@@ -41,9 +41,3 @@ CREATE TABLE tickets (
                          status VARCHAR(50) NOT NULL,
                          partner_id UUID REFERENCES partners(id) ON DELETE CASCADE
 );
-
-
-SELECT enumlabel AS enum_value
-FROM pg_enum
-         JOIN pg_type ON pg_type.oid = pg_enum.enumtypid
-WHERE pg_type.typname = 'contract_status';

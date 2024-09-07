@@ -153,23 +153,25 @@ public class ContractRepositoryImpl implements ContractRepository {
         return updated;
     }
         @Override
-    public boolean deleteContract(UUID id) {
-        final String query = "DELETE FROM " + tableName + " WHERE id = '" + id.toString() + "'";
+        public boolean deleteContract(UUID id) {
+            final String query = "DELETE FROM " + tableName + " WHERE id = ?";
 
-        try (final Statement stmt = connection.createStatement()) {
-            int rowsAffected = stmt.executeUpdate(query);
+            try (final PreparedStatement pstmt = connection.prepareStatement(query)) {
+                pstmt.setObject(1, id, java.sql.Types.OTHER); // Use the appropriate type for UUID
+                int rowsAffected = pstmt.executeUpdate();
 
-            if (rowsAffected > 0) {
-                System.out.println("Contract with ID " + id + " was removed successfully.");
-                return true;
-            } else {
-                System.out.println("Contract with ID " + id + " not found.");
-                return false;
+                if (rowsAffected > 0) {
+                    System.out.println("Contract with ID " + id + " was removed successfully.");
+                    return true;
+                } else {
+                    System.out.println("Contract with ID " + id + " not found.");
+                    return false;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace(); // Print the stack trace for debugging
+                throw new RuntimeException("Failed to remove contract with ID: " + id, e);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to remove contract with ID: " + id, e);
         }
-    }
     @Override
     public List<Contract> getTerminatedContracts() {
         final String query = "SELECT * FROM contracts WHERE status = ?::contract_status";

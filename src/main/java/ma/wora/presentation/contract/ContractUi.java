@@ -6,6 +6,7 @@ import main.java.ma.wora.models.enums.ContractStatus;
 import main.java.ma.wora.models.enums.DiscountType;
 import main.java.ma.wora.repositories.ContractRepository;
 import main.java.ma.wora.repositories.PartnerRepository;
+import main.java.ma.wora.services.ContractService;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -17,12 +18,14 @@ import java.util.UUID;
 public class ContractUi {
     private static final Scanner scanner = new Scanner(System.in);
 
-    private  final  ContractRepository contractRepository;
-    private final  PartnerRepository partnerRepository;
+    private final ContractRepository contractRepository;
+    private final PartnerRepository partnerRepository;
+    private final ContractService contractService;
 
-    public ContractUi(ContractRepository contractRepository, PartnerRepository partnerRepository) {
+    public ContractUi(ContractRepository contractRepository, PartnerRepository partnerRepository, ContractService contractService) {
         this.contractRepository = contractRepository;
         this.partnerRepository = partnerRepository;
+        this.contractService = contractService;
     }
 
     public void displayContractMenu() {
@@ -62,6 +65,7 @@ public class ContractUi {
         scanner.nextLine();
         return choice;
     }
+
     public void addContract() {
         LocalDate startDate;
         LocalDate endDate;
@@ -139,16 +143,16 @@ public class ContractUi {
         }
 
         Contract contract = new Contract(
-                        UUID.randomUUID(),
-                        Date.valueOf(startDate),
-                        Date.valueOf(endDate),
-                        specialRate,
-                        agreementConditions,
-                        renewable,
-                        status,
-                        partner,
-                        discountType
-                );
+                UUID.randomUUID(),
+                Date.valueOf(startDate),
+                Date.valueOf(endDate),
+                specialRate,
+                agreementConditions,
+                renewable,
+                status,
+                partner,
+                discountType
+        );
 
         try {
             contractRepository.createContract(contract);
@@ -157,6 +161,7 @@ public class ContractUi {
             System.err.println("Error inserting contract: " + e.getMessage());
         }
     }
+
     public void getContractById() {
         System.out.println("Enter Contract ID:");
         String input = scanner.nextLine();
@@ -184,7 +189,6 @@ public class ContractUi {
 
         displayContractDetails(contract);
     }
-
 
     public void getContractsByPartner() {
         System.out.println("Enter Partner ID:");
@@ -217,6 +221,7 @@ public class ContractUi {
             }
         }
     }
+
     private void displayPartnerDetails(Partner partner) {
         System.out.println("Partner Details:");
         System.out.println("ID: " + partner.getId());
@@ -227,6 +232,7 @@ public class ContractUi {
         System.out.println("Status: " + partner.getStatus());
         System.out.println("Creation Date: " + partner.getCreationDate());
     }
+
     public void getTerminatedContracts() {
         List<Contract> terminatedContracts = contractRepository.getTerminatedContracts();
 
@@ -241,122 +247,99 @@ public class ContractUi {
     }
 
     public void updateContract() {
-        System.out.print("Enter Contract ID: ");
+        System.out.println("Enter the contract ID to update: ");
         String contractIdInput = scanner.nextLine();
+        UUID contractId;
+
+        // Validate the UUID format
+        try {
+            contractId = UUID.fromString(contractIdInput);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid contract ID format!");
+            return;
+        }
+
+        // Fetch the existing contract
+        Contract existingContract = contractService.getContractById(contractId);
+        if (existingContract == null) {
+            System.out.println("Contract not found with the provided ID.");
+            return;
+        }
+
+        // Update fields with user input
+        System.out.print("Enter new start date (YYYY-MM-DD) (or press Enter to keep current): ");
+        String startDateInput = scanner.nextLine();
+        if (!startDateInput.isEmpty()) {
+            existingContract.setStartDate(Date.valueOf(LocalDate.parse(startDateInput)));
+        }
+
+        System.out.print("Enter new end date (YYYY-MM-DD) (or press Enter to keep current): ");
+        String endDateInput = scanner.nextLine();
+        if (!endDateInput.isEmpty()) {
+            existingContract.setEndDate(Date.valueOf(LocalDate.parse(endDateInput)));
+        }
+
+        System.out.print("Enter new special rate (or press Enter to keep current): ");
+        String specialRateInput = scanner.nextLine();
+        if (!specialRateInput.isEmpty()) {
+            existingContract.setSpecialRate(new BigDecimal(specialRateInput));
+        }
+
+        System.out.print("Enter new agreement conditions (or press Enter to keep current): ");
+        String agreementConditionsInput = scanner.nextLine();
+        if (!agreementConditionsInput.isEmpty()) {
+            existingContract.setAgreementConditions(agreementConditionsInput);
+        }
+
+        System.out.print("Is the contract renewable? (true/false) (or press Enter to keep current): ");
+        String renewableInput = scanner.nextLine();
+        if (!renewableInput.isEmpty()) {
+            existingContract.setRenewable(Boolean.parseBoolean(renewableInput));
+        }
+
+        System.out.print("Enter new contract status (e.g., ONGOING, EXPIRED) (or press Enter to keep current): ");
+        String statusInput = scanner.nextLine();
+        if (!statusInput.isEmpty()) {
+            existingContract.setStatus(ContractStatus.valueOf(statusInput.toUpperCase()));
+        }
+
+        System.out.print("Enter new discount type (e.g., PERCENTAGE, FIXED_AMOUNT) (or press Enter to keep current): ");
+        String discountTypeInput = scanner.nextLine();
+        if (!discountTypeInput.isEmpty()) {
+            existingContract.setDiscountType(DiscountType.valueOf(discountTypeInput.toUpperCase()));
+        }
 
         try {
-            UUID contractId = UUID.fromString(contractIdInput);
-
-            Contract existingContract = contractRepository.getContractById(contractId);
-            if (existingContract == null) {
-                System.out.println("No contract found with this ID.");
-                return;
-            }
-
-            System.out.println("Current Partner ID: " + existingContract.getPartner().getId());
-            System.out.print("Enter new Partner ID (or press Enter to keep current): ");
-            String partnerIdInput = scanner.nextLine();
-            UUID newPartnerId = partnerIdInput.isEmpty() ? existingContract.getPartner().getId() : UUID.fromString(partnerIdInput);
-
-            // Assuming you fetch the partner details from the database using the newPartnerId
-            Partner newPartner = partnerRepository.findById(newPartnerId);
-            if (newPartner == null) {
-                System.out.println("No partner found with this ID.");
-                return;
-            }
-
-            System.out.println("Current Start Date: " + existingContract.getStartDate());
-            System.out.print("Enter new Start Date (YYYY-MM-DD) (or press Enter to keep current): ");
-            String startDateInput = scanner.nextLine();
-            LocalDate newStartDate = startDateInput.isEmpty() ? existingContract.getStartDate().toLocalDate() : LocalDate.parse(startDateInput);
-
-            System.out.println("Current End Date: " + existingContract.getEndDate());
-            System.out.print("Enter new End Date (YYYY-MM-DD) (or press Enter to keep current): ");
-            String endDateInput = scanner.nextLine();
-            LocalDate newEndDate = endDateInput.isEmpty() ? existingContract.getEndDate().toLocalDate() : LocalDate.parse(endDateInput);
-
-            System.out.println("Current Special Rate: " + existingContract.getSpecialRate());
-            System.out.print("Enter new Special Rate (or press Enter to keep current): ");
-            String specialRateInput = scanner.nextLine();
-            BigDecimal newSpecialRate = specialRateInput.isEmpty() ? existingContract.getSpecialRate() : new BigDecimal(specialRateInput);
-
-            System.out.println("Current Agreement Conditions: " + existingContract.getAgreementConditions());
-            System.out.print("Enter new Agreement Conditions (or press Enter to keep current): ");
-            String agreementConditionsInput = scanner.nextLine();
-            String newAgreementConditions = agreementConditionsInput.isEmpty() ? existingContract.getAgreementConditions() : agreementConditionsInput;
-
-            System.out.println("Current Renewable: " + (existingContract.isRenewable() ? "Yes" : "No"));
-            System.out.print("Is it Renewable? (Yes/No) (or press Enter to keep current): ");
-            String renewableInput = scanner.nextLine();
-            boolean newRenewable = renewableInput.isEmpty() ? existingContract.isRenewable() : renewableInput.equalsIgnoreCase("Yes");
-
-            System.out.println("Current Status: " + existingContract.getStatus());
-            System.out.print("Enter new Status (ACTIVE/TERMINATED/SUSPENDED) (or press Enter to keep current): ");
-            String statusInput = scanner.nextLine();
-            ContractStatus newStatus = statusInput.isEmpty() ? existingContract.getStatus() : ContractStatus.valueOf(statusInput);
-
-            System.out.println("Current Discount Type: " + existingContract.getDiscountType());
-            System.out.print("Enter new Discount Type (PERCENTAGE/FIXED_AMOUNT) (or press Enter to keep current): ");
-            String discountTypeInput = scanner.nextLine();
-            DiscountType newDiscountType = discountTypeInput.isEmpty() ? existingContract.getDiscountType() : DiscountType.valueOf(discountTypeInput);
-
-            // Create an updated contract object
-            Contract updatedContract = new Contract(
-                    existingContract.getId(), // assuming the ID remains the same
-                    Date.valueOf(newStartDate),
-                    Date.valueOf(newEndDate),
-                    newSpecialRate,
-                    newAgreementConditions,
-                    newRenewable,
-                    newStatus,
-                    newPartner,  // Using the new partner object
-                    newDiscountType
-            );
-
-            boolean success = contractRepository.updateContract(contractId, updatedContract);
-            if (success) {
-                System.out.println("Contract updated successfully.");
-            } else {
-                System.out.println("Contract update failed.");
-            }
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid Contract ID format.");
+            contractService.updateContract(contractId, existingContract);
+            System.out.println("Contract updated successfully.");
+            displayContractDetails(existingContract); // Display updated details
+        } catch (Exception e) {
+            System.err.println("Error updating contract: " + e.getMessage());
         }
     }
-    public boolean removeContract() {
-        System.out.println("Enter Contract ID to remove:");
-        String input = scanner.nextLine();
 
-        if (input.isEmpty()) {
-            System.out.println("Empty input. Please enter a valid Contract ID.");
-            return false;  // Return false if input is empty
-        }
-
+    public void removeContract() {
+        System.out.print("Enter the ID of the contract to remove: ");
+        String contractIdInput = scanner.nextLine();
         UUID contractId;
+
         try {
-            contractId = UUID.fromString(input);
+            contractId = UUID.fromString(contractIdInput);
         } catch (IllegalArgumentException e) {
-            System.out.println("Invalid Contract ID format.");
-            return false;  // Return false if the input format is invalid
+            System.out.println("Invalid contract ID format!");
+            return;
         }
 
         try {
-            boolean isDeleted = contractRepository.deleteContract(contractId);
-            if (isDeleted) {
-                System.out.println("Contract removed successfully.");
-                return true;  // Return true if the contract was successfully removed
-            } else {
-                System.out.println("Contract not found or wasn't removed.");
-                return false;  // Return false if the contract wasn't found or couldn't be removed
-            }
+            contractService.deleteContract(contractId);
+            System.out.println("Contract removed successfully.");
         } catch (Exception e) {
             System.err.println("Error removing contract: " + e.getMessage());
-            return false;  // Return false if there was an error during the removal process
         }
     }
 
     private void displayContractDetails(Contract contract) {
-        System.out.println("Contract found:");
+        System.out.println("Contract Details:");
         System.out.println("ID: " + contract.getId());
         System.out.println("Start Date: " + contract.getStartDate());
         System.out.println("End Date: " + contract.getEndDate());
@@ -364,5 +347,7 @@ public class ContractUi {
         System.out.println("Agreement Conditions: " + contract.getAgreementConditions());
         System.out.println("Renewable: " + contract.isRenewable());
         System.out.println("Status: " + contract.getStatus());
+        System.out.println("Discount Type: " + contract.getDiscountType());
+        System.out.println("Partner: " + contract.getPartner().getCompanyName());
     }
 }

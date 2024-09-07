@@ -4,6 +4,7 @@ import main.java.ma.wora.models.entities.Partner;
 import main.java.ma.wora.models.enums.PartnerStatus;
 import main.java.ma.wora.models.enums.TransportType;
 import main.java.ma.wora.repositories.PartnerRepository;
+import main.java.ma.wora.services.PartnerService;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -12,11 +13,11 @@ import java.util.Scanner;
 import java.util.UUID;
 
 public class PartnerUi {
-    private final PartnerRepository partnerRepository;
+    private final PartnerService partnerService;
     private final Scanner scanner = new Scanner(System.in);
 
-    public PartnerUi(PartnerRepository partnerRepository) {
-        this.partnerRepository = partnerRepository;
+    public PartnerUi(PartnerService partnerService) {
+        this.partnerService = partnerService;
     }
 
 
@@ -26,7 +27,7 @@ public class PartnerUi {
         System.out.println("Enter the partner name to search for:");
         String companyName = scanner.nextLine();
 
-        Partner partner = partnerRepository.findByName(companyName);
+        Partner partner =partnerService.findPartnerByName(companyName);
         if (partner != null) {
             showPartnerDetails(partner);
         } else {
@@ -45,7 +46,7 @@ public class PartnerUi {
         System.out.println("Creation Date: " + (partner.getCreationDate() != null ? partner.getCreationDate() : "N/A"));
     }
     public void displayAllPartners() {
-        List<String> partnerNames = partnerRepository.findAll();
+        List<String> partnerNames =partnerService.findAllPartners();
         if (partnerNames.isEmpty()) {
             System.out.println("No partners found!");
         } else {
@@ -84,7 +85,7 @@ public class PartnerUi {
             return;
         }
 
-        partnerRepository.UpdatePartnerStatus(partnerId, newStatus);
+       partnerService.updatePartnerStatus(partnerId, newStatus);
 
     }
    public void addPartner() {
@@ -114,7 +115,7 @@ public class PartnerUi {
                 creationDate
         );
 
-        partnerRepository.add(partner);
+       partnerService.createPartner(partner);
         System.out.println("Partner added successfully.");
         showPartnerDetails(partner);
     }
@@ -131,45 +132,43 @@ public class PartnerUi {
             return;
         }
 
-        // Fetch current partner details from the database
-        Partner existingPartner = partnerRepository.findById(id);
+        Partner existingPartner =partnerService.findPartnerById(id);
         if (existingPartner == null) {
             System.out.println("Partner not found.");
             return;
         }
 
-        // Prompt for new values, with the option to press Enter to keep the current ones
         System.out.println("Enter the new company name (press Enter to keep current: " + existingPartner.getCompanyName() + "):");
         String companyName = scanner.nextLine();
         if (companyName.isEmpty()) {
-            companyName = existingPartner.getCompanyName(); // Keep current value
+            companyName = existingPartner.getCompanyName();
         }
 
         System.out.println("Enter the new transport type (press Enter to keep current: " + existingPartner.getTransportType() + "):");
         String transportType = scanner.nextLine();
         if (transportType.isEmpty()) {
-            transportType = String.valueOf(existingPartner.getTransportType()); // Keep current value
+            transportType = String.valueOf(existingPartner.getTransportType());
         }
 
         System.out.println("Enter the new geographical zone (press Enter to keep current: " + existingPartner.getGeographicalZone() + "):");
         String geographicalZone = scanner.nextLine();
         if (geographicalZone.isEmpty()) {
-            geographicalZone = existingPartner.getGeographicalZone(); // Keep current value
+            geographicalZone = existingPartner.getGeographicalZone();
         }
 
         System.out.println("Enter any new special conditions (press Enter to keep current: " + existingPartner.getSpecialConditions() + "):");
         String specialConditions = scanner.nextLine();
         if (specialConditions.isEmpty()) {
-            specialConditions = existingPartner.getSpecialConditions(); // Keep current value
+            specialConditions = existingPartner.getSpecialConditions();
         }
 
         System.out.println("Enter the new status (press Enter to keep current: " + existingPartner.getStatus() + "):");
         String status = scanner.nextLine();
         if (status.isEmpty()) {
-            status = String.valueOf(existingPartner.getStatus()); // Keep current value
+            status = String.valueOf(existingPartner.getStatus());
         }
 
-        java.util.Date creationDate = existingPartner.getCreationDate(); // Assuming the creation date stays the same
+        java.util.Date creationDate = existingPartner.getCreationDate();
 
         Partner updatedPartner = new Partner(
                 id,
@@ -181,7 +180,7 @@ public class PartnerUi {
                 Date.valueOf(String.valueOf(creationDate))
         );
 
-        Partner result = partnerRepository.update(updatedPartner);
+        Partner result =partnerService.updatePartner(updatedPartner);
 
         if (result != null) {
             System.out.println("Partner updated successfully.");
@@ -203,7 +202,7 @@ public class PartnerUi {
             return;
         }
 
-        boolean success = partnerRepository.remove(id);
+        boolean success =partnerService.removePartner(id);
 
         if (success) {
             System.out.println("Partner removed successfully.");
@@ -224,7 +223,7 @@ public class PartnerUi {
             return;
         }
 
-        Partner existingPartner = partnerRepository.findById(id);
+        Partner existingPartner =partnerService.findPartnerById(id);
         if (existingPartner == null) {
             System.out.println("Partner with ID " + id + " not found.");
             return;
@@ -241,7 +240,7 @@ public class PartnerUi {
             return;
         }
 
-        boolean success = partnerRepository.changeStatus(id, newStatus);
+        boolean success =partnerService.updatePartnerStatus(id, newStatus);
 
         if (success) {
             System.out.println("Partner status changed successfully.");

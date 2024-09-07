@@ -1,26 +1,24 @@
 package main.java.ma.wora.presentation.ticket;
 
-import main.java.ma.wora.impl.TicketRepositoryImpl;
 import main.java.ma.wora.models.entities.Ticket;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
-import main.java.ma.wora.repositories.TicketRepository;
+import main.java.ma.wora.services.TicketService;
 
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
 public class TicketUi {
-    private static final Scanner scanner = new Scanner(System.in);
-    private  final TicketRepository ticketRepository;
 
-    public TicketUi(TicketRepository ticketRepository) throws SQLException {
-        this.ticketRepository = ticketRepository;
+    private static final Scanner scanner = new Scanner(System.in);
+    private final TicketService ticketService;
+
+    public TicketUi(TicketService ticketService) {
+        this.ticketService = ticketService;
     }
 
     public void addTicket() {
@@ -35,8 +33,9 @@ public class TicketUi {
         System.out.println("Enter Selling Price:");
         BigDecimal sellingPrice = new BigDecimal(scanner.nextLine().trim());
 
-        System.out.println("Enter Sale Date (YYYY-MM-DDTHH:MM:SS):");
+        System.out.println("Enter Sale Date (YYYY-MM-DD):");
         LocalDate saleDate = LocalDate.parse(scanner.nextLine().trim());
+
         System.out.println("Enter Status (e.g., SOLD, AVAILABLE):");
         TicketStatus status = TicketStatus.valueOf(scanner.nextLine().trim().toUpperCase());
 
@@ -46,8 +45,9 @@ public class TicketUi {
         ticket.setSellingPrice(sellingPrice);
         ticket.setSaleDate(Date.valueOf(saleDate));
         ticket.setStatus(status);
+        ticket.setContract(contractId);
 
-        Ticket addedTicket = ticketRepository.add(ticket);
+        Ticket addedTicket = ticketService.addTicket(ticket);
         if (addedTicket != null) {
             System.out.println("Ticket added successfully.");
             displayTicketDetails(addedTicket);
@@ -55,6 +55,7 @@ public class TicketUi {
             System.out.println("Failed to add ticket.");
         }
     }
+
     private UUID getContractIdInput() {
         while (true) {
             System.out.print("Enter Contract ID: ");
@@ -66,12 +67,13 @@ public class TicketUi {
             }
         }
     }
+
     private void deleteTicket() {
         System.out.println("Enter Ticket ID to delete:");
-        UUID ticketId = UUID.fromString(scanner.next().trim());
-        Ticket ticket = ticketRepository.findById(ticketId);
+        UUID ticketId = UUID.fromString(scanner.nextLine().trim());
+        Ticket ticket = ticketService.getTicketById(ticketId);
         if (ticket != null) {
-            boolean deleted = ticketRepository.delete(ticket);
+            boolean deleted = ticketService.deleteTicket(ticket);
             if (deleted) {
                 System.out.println("Ticket deleted successfully.");
             } else {
@@ -82,10 +84,10 @@ public class TicketUi {
         }
     }
 
-    public void updateTicket() {
+    private void updateTicket() {
         System.out.println("Enter Ticket ID (UUID) to update:");
         UUID id = UUID.fromString(scanner.nextLine().trim());
-        Ticket ticket = ticketRepository.findById(id);
+        Ticket ticket = ticketService.getTicketById(id);
 
         if (ticket != null) {
             System.out.println("Enter new Transport Type (e.g., BUS, TRAIN) or press Enter to keep the current value:");
@@ -106,7 +108,7 @@ public class TicketUi {
                 ticket.setSellingPrice(new BigDecimal(sellingPriceInput));
             }
 
-            System.out.println("Enter new Sale Date (YYYY-MM-DDTHH:MM:SS) or press Enter to keep the current value:");
+            System.out.println("Enter new Sale Date (YYYY-MM-DD) or press Enter to keep the current value:");
             String saleDateInput = scanner.nextLine().trim();
             if (!saleDateInput.isEmpty()) {
                 ticket.setSaleDate(Date.valueOf(LocalDate.parse(saleDateInput)));
@@ -118,7 +120,11 @@ public class TicketUi {
                 ticket.setStatus(TicketStatus.valueOf(statusInput.toUpperCase()));
             }
 
-            Ticket updatedTicket = ticketRepository.update(ticket);
+            Ticket updatedTicket = ticketService.updateTicket(id, ticket.getTransportType().toString(),
+                    ticket.getPurchasePrice(), ticket.getSellingPrice(),
+                    ticket.getSaleDate().toLocalDate().toString(),
+                    ticket.getStatus().toString());
+
             if (updatedTicket != null) {
                 System.out.println("Ticket updated successfully.");
                 displayTicketDetails(updatedTicket);
@@ -129,27 +135,25 @@ public class TicketUi {
             System.out.println("Ticket not found.");
         }
     }
+
     private void listAllTickets() {
-        for (Ticket ticket : ticketRepository.findAll()) {
-            TicketUi.displayTicketDetails(ticket);
+        List<Ticket> tickets = ticketService.getAllTickets();
+        for (Ticket ticket : tickets) {
+            displayTicketDetails(ticket);
         }
-
     }
-    private void getTicketById() {
-        if (this.ticketRepository == null) {
-            System.out.println("Error: TicketRepository is not initialized.");
-            return;
-        }
 
+    private void getTicketById() {
         System.out.println("Enter Ticket ID:");
-        UUID ticketId = UUID.fromString(scanner.next().trim());
-        Ticket ticket = ticketRepository.findById(ticketId);
+        UUID ticketId = UUID.fromString(scanner.nextLine().trim());
+        Ticket ticket = ticketService.getTicketById(ticketId);
         if (ticket != null) {
-            TicketUi.displayTicketDetails(ticket);
+            displayTicketDetails(ticket);
         } else {
             System.out.println("Ticket not found.");
         }
     }
+
     public static void displayTicketDetails(Ticket ticket) {
         System.out.println("Ticket Details:");
         System.out.println("ID: " + ticket.getId());
@@ -169,6 +173,7 @@ public class TicketUi {
         scanner.nextLine();
         return choice;
     }
+
     public void displayTicketMenu() {
         boolean running = true;
 
@@ -194,5 +199,4 @@ public class TicketUi {
             }
         }
     }
-
 }
