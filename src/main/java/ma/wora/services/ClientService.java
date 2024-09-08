@@ -9,7 +9,7 @@ public class ClientService {
         ClientService.clientRepository = clientRepository;
     }
 
-    public Client createClient(Client client) {
+    public boolean createClient(Client client) {
         return  clientRepository.createClient(client);
     }
     public Client updateClient(Client client) {
