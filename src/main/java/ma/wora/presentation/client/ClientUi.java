@@ -1,6 +1,7 @@
 package main.java.ma.wora.presentation.client;
 
 import main.java.ma.wora.models.entities.Client;
+import main.java.ma.wora.presentation.ticket.TicketUi;
 import main.java.ma.wora.services.ClientService;
 
 import java.util.Optional;
@@ -15,7 +16,6 @@ public class ClientUi {
         this.clientService = clientService;
     }
 
-    // Method to create a new client
     public boolean createClient() {
         System.out.println("Please enter your first name: ");
         String firstName = scanner.nextLine();
@@ -142,6 +142,7 @@ public class ClientUi {
             switch (choice) {
                 case 1 -> updateClient();
                 case 2 -> getClient();
+                case 3 -> TicketUi.searchTicketByIdDestination();
                 default -> {
                     System.out.println("Invalid option. Exiting...");
                     running = false;

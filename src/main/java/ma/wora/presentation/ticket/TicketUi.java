@@ -1,5 +1,6 @@
 package main.java.ma.wora.presentation.ticket;
 
+import main.java.ma.wora.models.entities.Journey;
 import main.java.ma.wora.models.entities.Ticket;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
@@ -8,6 +9,10 @@ import main.java.ma.wora.services.TicketService;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
@@ -15,7 +20,7 @@ import java.util.UUID;
 public class TicketUi {
 
     private static final Scanner scanner = new Scanner(System.in);
-    private final TicketService ticketService;
+    private static TicketService ticketService = null;
 
     public TicketUi(TicketService ticketService) {
         this.ticketService = ticketService;
@@ -197,6 +202,42 @@ public class TicketUi {
                 case 0 -> running = false;
                 default -> System.out.println("Invalid choice. Please try again.");
             }
+        }
+    }
+
+
+    public static void searchTicketByIdDestination() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter your departure time (at) in YYYY-MM-DD HH:MM:SS format:");
+        String departureTimeStr = scanner.nextLine();
+
+        System.out.println("Enter your start point (from):");
+        String startPoint = scanner.nextLine();
+
+        System.out.println("Enter your end point (to):");
+        String endPoint = scanner.nextLine();
+
+        // Parse the departure time
+        LocalDateTime departureTime;
+        try {
+            departureTime = LocalDateTime.parse(departureTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format. Please use YYYY-MM-DD HH:MM:SS.");
+            return;
+        }
+
+        try {
+
+            List<Ticket> tickets = ticketService.searchTicketByDestination(startPoint, endPoint, LocalDate.from(departureTime));
+
+            if (tickets.isEmpty()) {
+                System.out.println("No tickets found.");
+            } else {
+                tickets.forEach(ticket -> System.out.println(ticket.toString()));
+            }
+        } catch (Exception e) {
+            System.out.println("Error retrieving tickets by destination: " + e.getMessage());
         }
     }
 }
