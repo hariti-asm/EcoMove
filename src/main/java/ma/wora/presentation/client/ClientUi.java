@@ -137,6 +137,7 @@ public class ClientUi {
             System.out.println("Welcome to ECOMOVE!");
             System.out.println("1. Update Your Account");
             System.out.println("2. Visit your account");
+            System.out.println("3.Search Ticket");
             int choice = getUserChoice();
             switch (choice) {
                 case 1 -> updateClient();
