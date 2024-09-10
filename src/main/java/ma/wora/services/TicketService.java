@@ -57,4 +57,8 @@ public class TicketService {
         }
         return null;
     }
+    public List<Ticket> searchTicketByDestination(String departurePoint, String arrivalPoint, LocalDate departureTime) {
+        return ticketRepository.searchTicketByDestination(departurePoint, arrivalPoint, departureTime);
+    }
+
 }

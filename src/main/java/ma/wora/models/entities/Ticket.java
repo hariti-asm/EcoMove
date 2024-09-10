@@ -16,8 +16,21 @@ public class Ticket {
     private TicketStatus status;
     private Integer discount;
     private UUID contract;
-
+    private  Journey journey;
     public Ticket() {
+    }
+
+    public Ticket(UUID id, TransportType transportType, BigDecimal purchasePrice, BigDecimal sellingPrice, Date saleDate, TicketStatus status, int discount, UUID contract, Journey journey) {
+        this.id = id;
+        this.transportType = transportType;
+        this.purchasePrice = purchasePrice;
+        this.sellingPrice = sellingPrice;
+        this.saleDate = saleDate;
+        this.status = status;
+        this.discount = discount;
+        this.contract = contract;
+        this.journey = journey;
+
     }
 
     public UUID getId() {
@@ -83,4 +96,20 @@ public class Ticket {
     public void setContract(UUID contract) {
         this.contract = contract;
     }
+
+    @Override
+    public String toString() {
+        return "Ticket {" + "\n" +
+                "  id: " + id + ",\n" +
+                "  transportType: " + transportType + ",\n" +
+                "  purchasePrice: " + purchasePrice + ",\n" +
+                "  sellingPrice: " + sellingPrice + ",\n" +
+                "  saleDate: " + saleDate + ",\n" +
+                "  status: " + status + ",\n" +
+                "  discount: " + discount + ",\n" +
+                "  contract: " + contract + ",\n" +
+                "  journey: " + journey + "\n" +
+                "}";
+    }
+
 }

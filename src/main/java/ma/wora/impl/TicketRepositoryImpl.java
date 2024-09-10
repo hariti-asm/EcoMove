@@ -1,5 +1,6 @@
 package main.java.ma.wora.impl;
 
+import main.java.ma.wora.models.entities.Journey;
 import main.java.ma.wora.models.entities.Ticket;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
@@ -8,12 +9,11 @@ import main.java.ma.wora.repositories.TicketRepository;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class TicketRepositoryImpl implements TicketRepository {
     private final Connection connection = JdbcPostgresqlConnection.getInstance().getConnection();
@@ -164,5 +164,67 @@ public class TicketRepositoryImpl implements TicketRepository {
         System.out.println("Selling Price: " + ticket.getSellingPrice());
         System.out.println("Sale Date: " + formattedDate);
         System.out.println("Status: " + ticket.getStatus());
+    }
+
+    public List<Ticket> searchTicketByDestination(String departurePoint, String arrivalPoint, LocalDate departureTime) {
+        String query = "SELECT t.id, t.transport_type, t.purchase_price, t.selling_price, t.sale_date, t.status, t.discount, t.contract_id, j.id as journey_id, j.departure_time, j.arrival_time, j.departure_station, j.arrival_station "
+                + "FROM Tickets t "
+                + "JOIN Journey j ON t.journey_id = j.id "
+                + "WHERE j.departure_station = ? "
+                + "AND j.arrival_station = ? "
+                + "AND j.departure_time >= ?";
+
+        Map<UUID, Journey> journeyMap = new HashMap<>();
+
+        try (PreparedStatement pst = connection.prepareStatement(query)) {
+            pst.setString(1, departurePoint);
+            pst.setString(2, arrivalPoint);
+            Timestamp departureTimestamp = Timestamp.valueOf(departureTime.atStartOfDay());
+            pst.setTimestamp(3, departureTimestamp);
+
+            ResultSet resultSet = pst.executeQuery();
+
+            while (resultSet.next()) {
+                UUID journeyId = UUID.fromString(resultSet.getString("journey_id"));
+
+                // Check existence
+                Journey journey = journeyMap.get(journeyId);
+
+                if (journey == null) {
+                    journey = new Journey(
+                            journeyId,
+                            resultSet.getTimestamp("departure_time"),
+                            resultSet.getTimestamp("arrival_time"),
+                            resultSet.getString("departure_station"),
+                            resultSet.getString("arrival_station"),
+                            new ArrayList<>()
+                    );
+                    journeyMap.put(journeyId, journey);
+                }
+
+                Ticket ticket = new Ticket(
+                        UUID.fromString(resultSet.getString("id")),
+                        TransportType.valueOf(resultSet.getString("transport_type")),
+                        resultSet.getBigDecimal("purchase_price"),
+                        resultSet.getBigDecimal("selling_price"),
+                        resultSet.getDate("sale_date"),
+                        TicketStatus.valueOf(resultSet.getString("status")),
+                        resultSet.getInt("discount"),
+                        UUID.fromString(resultSet.getString("contract_id")),
+                        journey
+                );
+
+                journey.getTickets().add(ticket);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving tickets by destination: " + e.getMessage(), e);
+        }
+
+        List<Ticket> allTickets = new ArrayList<>();
+        for (Journey journey : journeyMap.values()) {
+            allTickets.addAll(journey.getTickets());
+        }
+
+        return allTickets;
     }
 }
