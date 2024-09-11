@@ -67,7 +67,6 @@ final String tableName = "journey";
             throw new RuntimeException("Error retrieving journeys", e);
         }
 
-        return journeys;
     }
     @Override
     public List<Journey> searchJourneys(String startLocation, String endLocation, LocalDate departureDate) {
