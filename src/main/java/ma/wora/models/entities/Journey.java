@@ -12,9 +12,10 @@ public class Journey {
     private Timestamp arrivalTime;
     private String departureStation;
     private String arrivalStation;
-    List <Ticket> tickets;
+    private List<Ticket> tickets ;
+
     // Constructor
-    public Journey(UUID id, Timestamp departureTime, Timestamp arrivalTime, String departureStation, String arrivalStation, Object o) {
+    public Journey(UUID id, Timestamp departureTime, Timestamp arrivalTime, String departureStation, String arrivalStation, List<Ticket> tickets) {
         this.id = id;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
@@ -23,47 +24,6 @@ public class Journey {
         this.tickets = new ArrayList<>();
     }
 
-    // Getters
-    public UUID getId() {
-        return id;
-    }
-
-    public Timestamp getDepartureTime() {
-        return departureTime;
-    }
-
-    public Timestamp getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public String getDepartureStation() {
-        return departureStation;
-    }
-
-    public String getArrivalStation() {
-        return arrivalStation;
-    }
-
-    // Setters (optional, if you plan to modify these fields)
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setDepartureTime(Timestamp departureTime) {
-        this.departureTime = departureTime;
-    }
-
-    public void setArrivalTime(Timestamp arrivalTime) {
-        this.arrivalTime = arrivalTime;
-    }
-
-    public void setDepartureStation(String departureStation) {
-        this.departureStation = departureStation;
-    }
-
-    public void setArrivalStation(String arrivalStation) {
-        this.arrivalStation = arrivalStation;
-    }
 
     @Override
     public String toString() {
@@ -74,6 +34,47 @@ public class Journey {
                 ", departureStation='" + departureStation + '\'' +
                 ", arrivalStation='" + arrivalStation + '\'' +
                 '}';
+    }
+
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public Timestamp getDepartureTime() {
+        return departureTime;
+    }
+
+    public void setDepartureTime(Timestamp departureTime) {
+        this.departureTime = departureTime;
+    }
+
+    public Timestamp getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public void setArrivalTime(Timestamp arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
+
+    public String getDepartureStation() {
+        return departureStation;
+    }
+
+    public void setDepartureStation(String departureStation) {
+        this.departureStation = departureStation;
+    }
+
+    public String getArrivalStation() {
+        return arrivalStation;
+    }
+
+    public void setArrivalStation(String arrivalStation) {
+        this.arrivalStation = arrivalStation;
     }
 
     public List<Ticket> getTickets() {
