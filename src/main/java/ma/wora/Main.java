@@ -35,7 +35,7 @@ public class Main {
             partnerService = new PartnerService(partnerRepository);
             contractService = new ContractService(contractRepository);
             clientService = new  ClientService(clientRepository);
-            ticketRepository = new TicketRepositoryImpl();
+            ticketRepository = new TicketRepositoryImpl(contractRepository);
             ticketService = new TicketService(ticketRepository);
             PromotionRepository promotionRepository = new PromotionRepositoryImpl();
             promotionService = new PromotionService(promotionRepository);
@@ -51,7 +51,7 @@ public class Main {
     public static void main(String[] args) {
         final PartnerUi partnerUi = new PartnerUi(partnerService);
         final ContractUi contractUi = new ContractUi(contractRepository, partnerRepository, contractService);
-        final TicketUi ticketUi = new TicketUi(ticketService);
+        final TicketUi ticketUi = new TicketUi(ticketService , contractService);
         final PromotionUi promotionUi = new PromotionUi(promotionService);
         final ClientUi clientUi = new ClientUi(clientService);
 

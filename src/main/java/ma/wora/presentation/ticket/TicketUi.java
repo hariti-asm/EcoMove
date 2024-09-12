@@ -1,9 +1,10 @@
 package main.java.ma.wora.presentation.ticket;
 
-import main.java.ma.wora.models.entities.Journey;
+import main.java.ma.wora.models.entities.Contract;
 import main.java.ma.wora.models.entities.Ticket;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
+import main.java.ma.wora.services.ContractService;
 import main.java.ma.wora.services.TicketService;
 
 import java.math.BigDecimal;
@@ -12,7 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
@@ -21,9 +21,10 @@ public class TicketUi {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static TicketService ticketService = null;
-
-    public TicketUi(TicketService ticketService) {
+private ContractService contractService = null;
+    public TicketUi(TicketService ticketService , ContractService contractService) {
         this.ticketService = ticketService;
+        this.contractService = contractService;
     }
 
     public void addTicket() {
@@ -43,14 +44,14 @@ public class TicketUi {
 
         System.out.println("Enter Status (e.g., SOLD, AVAILABLE):");
         TicketStatus status = TicketStatus.valueOf(scanner.nextLine().trim().toUpperCase());
-
+        Contract contract =  contractService.getContractById(contractId);
         Ticket ticket = new Ticket();
         ticket.setTransportType(transportType);
         ticket.setPurchasePrice(purchasePrice);
         ticket.setSellingPrice(sellingPrice);
         ticket.setSaleDate(Date.valueOf(saleDate));
         ticket.setStatus(status);
-        ticket.setContract(contractId);
+        ticket.setContract(contract);
 
         Ticket addedTicket = ticketService.addTicket(ticket);
         if (addedTicket != null) {
@@ -159,14 +160,16 @@ public class TicketUi {
         }
     }
 
-    public static void displayTicketDetails(Ticket ticket) {
+    public static boolean displayTicketDetails(Ticket ticket) {
         System.out.println("Ticket Details:");
         System.out.println("ID: " + ticket.getId());
         System.out.println("Transport Type: " + ticket.getTransportType());
         System.out.println("Purchase Price: " + ticket.getPurchasePrice());
         System.out.println("Selling Price: " + ticket.getSellingPrice());
+        System.out.println("status " + ticket.getStatus());
         System.out.println("Sale Date: " + ticket.getSaleDate());
-        System.out.println("Status: " + ticket.getStatus());
+        System.out.println("Total Price: " + ticketService.CalculatePrice(ticket));
+        return false;
     }
 
     private int getUserChoice() {
@@ -234,7 +237,7 @@ public class TicketUi {
             if (tickets.isEmpty()) {
                 System.out.println("No tickets found.");
             } else {
-                tickets.forEach(ticket -> System.out.println(ticket.toString()));
+                tickets.forEach(ticket -> System.out.println(displayTicketDetails(ticket)));
             }
         } catch (Exception e) {
             System.out.println("Error retrieving tickets by destination: " + e.getMessage());

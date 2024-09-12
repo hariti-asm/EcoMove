@@ -17,9 +17,9 @@ public class Contract {
     private ContractStatus status;
     private Partner partner;
     private  DiscountType discountType;
-
+private BigDecimal value;
     public Contract(UUID id, Date startDate, Date endDate, BigDecimal specialRate, String agreementConditions,
-                    boolean renewable, ContractStatus status, Partner partner , DiscountType discountType) {
+                    boolean renewable, ContractStatus status, Partner partner , DiscountType discountType , BigDecimal value) {
         this.id = id;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -29,6 +29,7 @@ public class Contract {
         this.status = status;
         this.partner = partner;
         this.discountType = discountType;
+        this.value = value;
 
     }
 
@@ -107,4 +108,11 @@ public class Contract {
     }
 
 
+    public BigDecimal getValue() {
+        return value;
+    }
+
+    public void setValue(BigDecimal value) {
+        this.value = value;
+    }
 }
