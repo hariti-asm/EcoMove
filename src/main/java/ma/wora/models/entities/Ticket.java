@@ -14,13 +14,21 @@ public class Ticket {
     private BigDecimal sellingPrice;
     private Date saleDate;  // Use java.sql.Date
     private TicketStatus status;
-    private Integer discount;
-    private UUID contract;
+    private BigDecimal discount;
+    private Contract contract;
     private  Journey journey;
     public Ticket() {
     }
 
-    public Ticket(UUID id, TransportType transportType, BigDecimal purchasePrice, BigDecimal sellingPrice, Date saleDate, TicketStatus status, int discount, UUID contract, Journey journey) {
+    public Journey getJourney() {
+        return journey;
+    }
+
+    public void setJourney(Journey journey) {
+        this.journey = journey;
+    }
+
+    public Ticket(UUID id, TransportType transportType, BigDecimal purchasePrice, BigDecimal sellingPrice, Date saleDate, TicketStatus status, BigDecimal discount, Contract contract, Journey journey) {
         this.id = id;
         this.transportType = transportType;
         this.purchasePrice = purchasePrice;
@@ -66,7 +74,7 @@ public class Ticket {
     }
 
     public Date getSaleDate() {
-        return saleDate;  // No need for casting
+        return saleDate;
     }
 
     public void setSaleDate(Date saleDate) {
@@ -81,19 +89,19 @@ public class Ticket {
         this.status = status;
     }
 
-    public Integer getDiscount() {
+    public BigDecimal getDiscount() {
         return discount;
     }
 
-    public void setDiscount(Integer discount) {
+    public void setDiscount(BigDecimal discount) {
         this.discount = discount;
     }
 
-    public UUID getContract() {
+    public Contract getContract() {
         return contract;
     }
 
-    public void setContract(UUID contract) {
+    public void setContract(Contract contract) {
         this.contract = contract;
     }
 

@@ -1,10 +1,12 @@
 package main.java.ma.wora.impl;
 
+import main.java.ma.wora.models.entities.Contract;
 import main.java.ma.wora.models.entities.Journey;
 import main.java.ma.wora.models.entities.Ticket;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
 import main.java.ma.wora.config.JdbcPostgresqlConnection;
+import main.java.ma.wora.repositories.ContractRepository;
 import main.java.ma.wora.repositories.TicketRepository;
 
 import java.math.BigDecimal;
@@ -18,8 +20,9 @@ import java.util.*;
 public class TicketRepositoryImpl implements TicketRepository {
     private final Connection connection = JdbcPostgresqlConnection.getInstance().getConnection();
     private final String tableName = "tickets";
-
-    public TicketRepositoryImpl() throws SQLException {
+   private ContractRepository contractRepository;
+    public TicketRepositoryImpl( ContractRepository contractRepository) throws SQLException {
+        this.contractRepository = contractRepository;
     }
 
     @Override
@@ -32,16 +35,16 @@ public class TicketRepositoryImpl implements TicketRepository {
                 // Extract data from the result set
                 UUID ticketId = UUID.fromString(resultSet.getString("id"));
                 String transportType = resultSet.getString("transport_type");
-                double purchasePrice = resultSet.getDouble("purchase_price");
-                double sellingPrice = resultSet.getDouble("selling_price");
+                BigDecimal purchasePrice = resultSet.getBigDecimal("purchase_price");
+                BigDecimal sellingPrice = resultSet.getBigDecimal("selling_price");
                 java.sql.Date saleDate = resultSet.getDate("sale_date");
                 String status = resultSet.getString("status");
 
                 Ticket ticket = new Ticket();
                 ticket.setId(ticketId);
                 ticket.setTransportType(TransportType.valueOf(transportType));
-                ticket.setPurchasePrice(BigDecimal.valueOf(purchasePrice));
-                ticket.setSellingPrice(BigDecimal.valueOf(sellingPrice));
+                ticket.setPurchasePrice(purchasePrice);
+                ticket.setSellingPrice(sellingPrice);
 
                 // Set the sale date as a java.sql.Date
                 ticket.setSaleDate(saleDate);
@@ -191,37 +194,56 @@ public class TicketRepositoryImpl implements TicketRepository {
                 + "AND d.departure_time >= ?";
 
         try (PreparedStatement pst = connection.prepareStatement(query)) {
+            // Set parameters for the query
             pst.setString(1, departurePoint);
             pst.setString(2, arrivalPoint);
             pst.setTimestamp(3, Timestamp.valueOf(departureTime.atStartOfDay()));
 
-            ResultSet resultSet = pst.executeQuery();
-            while (resultSet.next()) {
-                UUID journeyId = UUID.fromString(resultSet.getString("journey_id"));
-                Journey journey = journeyMap.computeIfAbsent(journeyId, id -> {
-                    try {
-                        return new Journey(
-                                id,
-                                resultSet.getTimestamp("departure_time"),
-                                resultSet.getTimestamp("arrival_time"),
-                                resultSet.getString("departure_station"),
-                                resultSet.getString("arrival_station"),
-                                new ArrayList<>()
-                        );
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+            try (ResultSet resultSet = pst.executeQuery()) {
+                while (resultSet.next()) {
+                    // Retrieve journey ID and create or retrieve the Journey object
+                    UUID journeyId = UUID.fromString(resultSet.getString("journey_id"));
+                    Journey journey = journeyMap.computeIfAbsent(journeyId, id -> {
+                        try {
+                            return new Journey(
+                                    id,
+                                    resultSet.getTimestamp("departure_time"),
+                                    resultSet.getTimestamp("arrival_time"),
+                                    resultSet.getString("departure_station"),
+                                    resultSet.getString("arrival_station"),
+                                    new ArrayList<>()
+                            );
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
-                // Call the correct method with three arguments
-                Ticket ticket = createTicketFromResultSet(resultSet, journey, "");
-                journey.getTickets().add(ticket);
+                    // Create a Ticket object from the result set and add it to the journey
+                    Ticket ticket = createTicketFromResultSet(resultSet, "");
+                    journey.getTickets().add(ticket);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error retrieving direct tickets by destination: " + e.getMessage(), e);
         }
     }
 
+    private Ticket createTicketFromResultSet(ResultSet rs, String prefix) throws SQLException {
+        UUID contractId = UUID.fromString(rs.getString(prefix + "contract_id"));
+
+        Contract contract =  contractRepository.getContractById(contractId);
+        return new Ticket(
+                UUID.fromString(rs.getString(prefix + "id")),
+                TransportType.valueOf(rs.getString(prefix + "transport_type")),
+                rs.getBigDecimal(prefix + "purchase_price"),
+                rs.getBigDecimal(prefix + "selling_price"),
+                rs.getDate(prefix + "sale_date"),
+                TicketStatus.valueOf(rs.getString(prefix + "status")),
+                rs.getBigDecimal(prefix + "discount"),
+                contract,
+                null
+        );
+    }
     private void queryIndirectJourneys(String departurePoint, String arrivalPoint, LocalDate departureTime, Map<UUID, Journey> journeyMap) {
         String query = "SELECT t1.id AS first_ticket_id, t1.transport_type AS first_transport_type, t1.purchase_price AS first_purchase_price, "
                 + "       t1.selling_price AS first_selling_price, t1.sale_date AS first_sale_date, t1.status AS first_status, "
@@ -296,6 +318,9 @@ public class TicketRepositoryImpl implements TicketRepository {
     }
 
     private Ticket createTicketFromResultSet(ResultSet rs, Journey journey, String prefix) throws SQLException {
+        UUID contractId = UUID.fromString(rs.getString(prefix + "contract_id"));
+
+        Contract contract =  contractRepository.getContractById(contractId);
         return new Ticket(
                 UUID.fromString(rs.getString(prefix + "ticket_id")),
                 TransportType.valueOf(rs.getString(prefix + "transport_type")),
@@ -303,8 +328,8 @@ public class TicketRepositoryImpl implements TicketRepository {
                 rs.getBigDecimal(prefix + "selling_price"),
                 rs.getDate(prefix + "sale_date"),
                 TicketStatus.valueOf(rs.getString(prefix + "status")),
-                rs.getInt(prefix + "discount"),
-                UUID.fromString(rs.getString(prefix + "contract_id")),
+                rs.getBigDecimal(prefix + "discount"),
+                contract,
                 journey
         );
     }

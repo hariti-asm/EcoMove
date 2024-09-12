@@ -96,6 +96,14 @@ public class ContractUi {
             return;
         }
 
+        BigDecimal value;
+        try {
+            value = new BigDecimal(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("invalid number for discount value.");
+            return;
+        }
+
         System.out.println("Enter the agreement conditions:");
         String agreementConditions = scanner.nextLine();
 
@@ -151,7 +159,8 @@ public class ContractUi {
                 renewable,
                 status,
                 partner,
-                discountType
+                discountType,
+                value
         );
 
         try {

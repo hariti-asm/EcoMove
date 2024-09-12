@@ -89,7 +89,8 @@ public class ContractRepositoryImpl implements ContractRepository {
                         resultSet.getBoolean("renewable"),
                         ContractStatus.valueOf(resultSet.getString("status")),
                          partner,
-                        DiscountType.valueOf(resultSet.getString("discount_type"))
+                        DiscountType.valueOf(resultSet.getString("discount_type")),
+                        resultSet.getBigDecimal("value")
                 );
             }
         } catch (SQLException e) {
@@ -117,7 +118,8 @@ public class ContractRepositoryImpl implements ContractRepository {
                         resultSet.getBoolean("renewable"),
                         ContractStatus.valueOf(resultSet.getString("status")),
                         partnerRepository.findById(UUID.fromString(resultSet.getString("partner_id"))),
-                        DiscountType.valueOf(resultSet.getString("discount_type"))
+                        DiscountType.valueOf(resultSet.getString("discount_type")) ,
+                        resultSet.getBigDecimal("value")
                 );
                 contracts.add(contract);
             }
@@ -190,9 +192,11 @@ public class ContractRepositoryImpl implements ContractRepository {
                                         resultSet.getString("agreement_conditions"),
                                         resultSet.getBoolean("renewable"),
                                         ContractStatus.valueOf(resultSet.getString("status")),
-                        partnerRepository.findById(UUID.fromString(resultSet.getString("partner_id"))),
-                        DiscountType.valueOf(resultSet.getString("discount_type"))
-                                );
+                                        partnerRepository.findById(UUID.fromString(resultSet.getString("partner_id"))),
+                                        DiscountType.valueOf(resultSet.getString("discount_type")),
+                                        resultSet.getBigDecimal("value")
+
+                );
                 terminatedContracts.add(contract);
             }
         } catch (SQLException e) {
@@ -212,6 +216,7 @@ public class ContractRepositoryImpl implements ContractRepository {
                 "c.renewable, " +
                 "c.status, " +
                 "c.discount_type, " +
+                "c.value," +
                 "p.company_name, " +
                 "p.transport_type, " +
                 "p.geographical_zone, " +
@@ -248,9 +253,11 @@ public class ContractRepositoryImpl implements ContractRepository {
                                         resultSet.getString("agreement_conditions"),
                                         resultSet.getBoolean("renewable"),
                                         ContractStatus.valueOf(resultSet.getString("status")),
-                        partnerRepository.findById(UUID.fromString(resultSet.getString("partner_id"))),
-                        DiscountType.valueOf(resultSet.getString("discount_type"))
-                                        );
+                                        partnerRepository.findById(UUID.fromString(resultSet.getString("partner_id"))),
+                                        DiscountType.valueOf(resultSet.getString("discount_type")),
+                                        resultSet.getBigDecimal("value")
+
+                );
 
                 contracts.add(contract);
             }
