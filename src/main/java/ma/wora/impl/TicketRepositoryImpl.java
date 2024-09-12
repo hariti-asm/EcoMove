@@ -166,13 +166,12 @@ public class TicketRepositoryImpl implements TicketRepository {
         System.out.println("Sale Date: " + formattedDate);
         System.out.println("Status: " + ticket.getStatus());
     }
-
     public List<Ticket> searchTicketByDestination(String departurePoint, String arrivalPoint, LocalDate departureTime) {
         Map<UUID, Journey> journeyMap = new HashMap<>();
         List<Ticket> allTickets = new ArrayList<>();
 
         queryDirectJourneys(departurePoint, arrivalPoint, departureTime, journeyMap);
-        queryIndirectJourneys(departurePoint, arrivalPoint, journeyMap);
+        queryIndirectJourneys(departurePoint, arrivalPoint, departureTime, journeyMap);
 
         // Collect all tickets from journeys
         for (Journey journey : journeyMap.values()) {
@@ -184,7 +183,7 @@ public class TicketRepositoryImpl implements TicketRepository {
 
     private void queryDirectJourneys(String departurePoint, String arrivalPoint, LocalDate departureTime, Map<UUID, Journey> journeyMap) {
         String query = "SELECT t.id, t.transport_type, t.purchase_price, t.selling_price, t.sale_date, t.status, t.discount, t.contract_id, "
-                + "d.journey_id, d.departure_time, d.arrival_time, d.departure_station, d.arrival_station "
+                + "       d.journey_id, d.departure_time, d.arrival_time, d.departure_station, d.arrival_station "
                 + "FROM Tickets t "
                 + "JOIN direct_journeys d ON t.journey_id = d.journey_id "
                 + "WHERE d.departure_station = ? "
@@ -214,18 +213,8 @@ public class TicketRepositoryImpl implements TicketRepository {
                     }
                 });
 
-                Ticket ticket = new Ticket(
-                        UUID.fromString(resultSet.getString("id")),
-                        TransportType.valueOf(resultSet.getString("transport_type")),
-                        resultSet.getBigDecimal("purchase_price"),
-                        resultSet.getBigDecimal("selling_price"),
-                        resultSet.getDate("sale_date"),
-                        TicketStatus.valueOf(resultSet.getString("status")),
-                        resultSet.getInt("discount"),
-                        UUID.fromString(resultSet.getString("contract_id")),
-                        journey
-                );
-
+                // Call the correct method with three arguments
+                Ticket ticket = createTicketFromResultSet(resultSet, journey, "");
                 journey.getTickets().add(ticket);
             }
         } catch (SQLException e) {
@@ -233,7 +222,7 @@ public class TicketRepositoryImpl implements TicketRepository {
         }
     }
 
-    private void queryIndirectJourneys(String departurePoint, String arrivalPoint, Map<UUID, Journey> journeyMap) {
+    private void queryIndirectJourneys(String departurePoint, String arrivalPoint, LocalDate departureTime, Map<UUID, Journey> journeyMap) {
         String query = "SELECT t1.id AS first_ticket_id, t1.transport_type AS first_transport_type, t1.purchase_price AS first_purchase_price, "
                 + "       t1.selling_price AS first_selling_price, t1.sale_date AS first_sale_date, t1.status AS first_status, "
                 + "       t1.discount AS first_discount, t1.contract_id AS first_contract_id, "
@@ -247,11 +236,13 @@ public class TicketRepositoryImpl implements TicketRepository {
                 + "LEFT JOIN Tickets t1 ON i.first_journey_id = t1.journey_id "
                 + "LEFT JOIN Tickets t2 ON i.second_journey_id = t2.journey_id "
                 + "WHERE i.first_departure_station = ? "
-                + "AND i.second_arrival_station = ?";
+                + "AND i.second_arrival_station = ? "
+                + "AND i.first_departure_time >= ?";
 
         try (PreparedStatement pst = connection.prepareStatement(query)) {
             pst.setString(1, departurePoint);
             pst.setString(2, arrivalPoint);
+            pst.setTimestamp(3, Timestamp.valueOf(departureTime.atStartOfDay()));
 
             ResultSet resultSet = pst.executeQuery();
             while (resultSet.next()) {
@@ -299,18 +290,23 @@ public class TicketRepositoryImpl implements TicketRepository {
     private void addTicketToJourney(ResultSet resultSet, String prefix, Journey journey) throws SQLException {
         String ticketId = resultSet.getString(prefix + "ticket_id");
         if (ticketId != null) {
-            Ticket ticket = new Ticket(
-                    UUID.fromString(ticketId),
-                    TransportType.valueOf(resultSet.getString(prefix + "transport_type")),
-                    resultSet.getBigDecimal(prefix + "purchase_price"),
-                    resultSet.getBigDecimal(prefix + "selling_price"),
-                    resultSet.getDate(prefix + "sale_date"),
-                    TicketStatus.valueOf(resultSet.getString(prefix + "status")),
-                    resultSet.getInt(prefix + "discount"),
-                    UUID.fromString(resultSet.getString(prefix + "contract_id")),
-                    journey
-            );
+            Ticket ticket = createTicketFromResultSet(resultSet, journey, prefix);
             journey.getTickets().add(ticket);
         }
     }
+
+    private Ticket createTicketFromResultSet(ResultSet rs, Journey journey, String prefix) throws SQLException {
+        return new Ticket(
+                UUID.fromString(rs.getString(prefix + "ticket_id")),
+                TransportType.valueOf(rs.getString(prefix + "transport_type")),
+                rs.getBigDecimal(prefix + "purchase_price"),
+                rs.getBigDecimal(prefix + "selling_price"),
+                rs.getDate(prefix + "sale_date"),
+                TicketStatus.valueOf(rs.getString(prefix + "status")),
+                rs.getInt(prefix + "discount"),
+                UUID.fromString(rs.getString(prefix + "contract_id")),
+                journey
+        );
+    }
+
 }
