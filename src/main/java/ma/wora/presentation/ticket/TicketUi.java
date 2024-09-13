@@ -245,29 +245,42 @@ public class TicketUi {
             }
 
             tickets.forEach(TicketUi::displayTicketDetails);
+            System.out.println("Would you like to confirm your reservation to mention it as favorite (confirm/favorite)");
+            String answer2 = scanner.nextLine();
+            if(answer2.equals("confirm")) {
+                System.out.println("Would you like to confirm your reservation for all displayed tickets (yes/no)?");
+                String answer = scanner.nextLine().trim();
 
-            System.out.println("Would you like to confirm your reservation for all displayed tickets (yes/no)?");
-            String answer = scanner.nextLine().trim();
+                if (answer.equalsIgnoreCase("yes")) {
+                    System.out.println("Enter your ID:");
+                    UUID id = UUID.fromString(scanner.nextLine().trim());
 
-            if (answer.equalsIgnoreCase("yes")) {
+                    Optional<Client> clientOptional = clientService.getClientById(id);
+                    if (clientOptional.isEmpty()) {
+                        System.out.println("Client not found. Please check your ID.");
+                        return;
+                    }
+
+                    Client client = clientOptional.get(); // Extract the Client object
+
+                    Reservation reservation = new Reservation(UUID.randomUUID(), tickets, client, ReservationStatus.PENDING);
+                    reservationService.confirmReservation(reservation);
+                    System.out.println("Reservation confirmed for all displayed tickets.");
+                } else if (answer.equalsIgnoreCase("no")) {
+                    System.out.println("Reservation not confirmed.");
+                } else {
+                    System.out.println("Invalid response. Please enter 'yes' or 'no'.");
+                }
+            } else if (answer2.equals("favorite")) {
                 System.out.println("Enter your ID:");
                 UUID id = UUID.fromString(scanner.nextLine().trim());
-
                 Optional<Client> clientOptional = clientService.getClientById(id);
                 if (clientOptional.isEmpty()) {
                     System.out.println("Client not found. Please check your ID.");
-                    return;
+
                 }
+                Client client = clientOptional.get();
 
-                Client client = clientOptional.get(); // Extract the Client object
-
-                Reservation reservation = new Reservation(UUID.randomUUID(), tickets, client, ReservationStatus.PENDING);
-                reservationService.confirmReservation(reservation);
-                System.out.println("Reservation confirmed for all displayed tickets.");
-            } else if (answer.equalsIgnoreCase("no")) {
-                System.out.println("Reservation not confirmed.");
-            } else {
-                System.out.println("Invalid response. Please enter 'yes' or 'no'.");
             }
         } catch (Exception e) {
             System.out.println("Error retrieving tickets by destination: " + e.getMessage());

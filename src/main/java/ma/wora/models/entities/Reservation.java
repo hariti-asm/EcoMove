@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class Reservation {
-        private UUID id;
+    private UUID id;
     private Client client;
     private List <Ticket> tickets;
     private ReservationStatus status;
