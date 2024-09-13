@@ -227,11 +227,6 @@ public class TicketUi {
         System.out.println("Enter your end point (to):");
         String endPoint = scanner.nextLine();
 
-        System.out.println("Enter your email:");
-        String email = scanner.nextLine().trim();
-
-        System.out.println("Enter your last name:");
-        String lastName = scanner.nextLine().trim();
 
         LocalDateTime departureTime;
         try {
