@@ -1,5 +1,6 @@
 package main.java.ma.wora.models.entities;
 
+import java.util.List;
 import java.util.UUID;
 
 public class Client {
@@ -8,13 +9,15 @@ public class Client {
     private String lastName;
     private String email;
     private String phone;
+    private List<Reservation> reservations;
 
-    public Client(UUID id, String firstName, String lastName, String email, String phone) {
+    public Client(UUID id, String firstName, String lastName, String email, String phone , List<Reservation> reservations) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
+        this.reservations = reservations;
     }
 
     public UUID getId() {

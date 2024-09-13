@@ -17,7 +17,8 @@ public class Contract {
     private ContractStatus status;
     private Partner partner;
     private  DiscountType discountType;
-private BigDecimal value;
+    private BigDecimal value;
+     //To do add a list of promotions here and handle changes
     public Contract(UUID id, Date startDate, Date endDate, BigDecimal specialRate, String agreementConditions,
                     boolean renewable, ContractStatus status, Partner partner , DiscountType discountType , BigDecimal value) {
         this.id = id;

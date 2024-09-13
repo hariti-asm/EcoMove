@@ -1,10 +1,15 @@
 package main.java.ma.wora.presentation.ticket;
 
+import main.java.ma.wora.models.entities.Client;
 import main.java.ma.wora.models.entities.Contract;
+import main.java.ma.wora.models.entities.Reservation;
 import main.java.ma.wora.models.entities.Ticket;
+import main.java.ma.wora.models.enums.ReservationStatus;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
+import main.java.ma.wora.services.ClientService;
 import main.java.ma.wora.services.ContractService;
+import main.java.ma.wora.services.ReservationService;
 import main.java.ma.wora.services.TicketService;
 
 import java.math.BigDecimal;
@@ -13,18 +18,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 
 public class TicketUi {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static TicketService ticketService = null;
-private ContractService contractService = null;
-    public TicketUi(TicketService ticketService , ContractService contractService) {
+    private ContractService contractService = null;
+    private ReservationService reservationService = null;
+    private ClientService clientService = null;
+
+    public TicketUi(TicketService ticketService, ContractService contractService, ReservationService reservationService, ClientService clientService) {
         this.ticketService = ticketService;
         this.contractService = contractService;
+        this.reservationService = reservationService;
+        this.clientService = clientService;
     }
 
     public void addTicket() {
@@ -44,7 +52,7 @@ private ContractService contractService = null;
 
         System.out.println("Enter Status (e.g., SOLD, AVAILABLE):");
         TicketStatus status = TicketStatus.valueOf(scanner.nextLine().trim().toUpperCase());
-        Contract contract =  contractService.getContractById(contractId);
+        Contract contract = contractService.getContractById(contractId);
         Ticket ticket = new Ticket();
         ticket.setTransportType(transportType);
         ticket.setPurchasePrice(purchasePrice);
@@ -209,9 +217,7 @@ private ContractService contractService = null;
     }
 
 
-    public static void searchTicketByIdDestination() {
-        Scanner scanner = new Scanner(System.in);
-
+    public void searchTicketByIdDestination() {
         System.out.println("Enter your departure time (at) in YYYY-MM-DD HH:MM:SS format:");
         String departureTimeStr = scanner.nextLine();
 
@@ -221,7 +227,12 @@ private ContractService contractService = null;
         System.out.println("Enter your end point (to):");
         String endPoint = scanner.nextLine();
 
-        // Parse the departure time
+        System.out.println("Enter your email:");
+        String email = scanner.nextLine().trim();
+
+        System.out.println("Enter your last name:");
+        String lastName = scanner.nextLine().trim();
+
         LocalDateTime departureTime;
         try {
             departureTime = LocalDateTime.parse(departureTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -231,13 +242,37 @@ private ContractService contractService = null;
         }
 
         try {
-
             List<Ticket> tickets = ticketService.searchTicketByDestination(startPoint, endPoint, LocalDate.from(departureTime));
 
             if (tickets.isEmpty()) {
                 System.out.println("No tickets found.");
+                return;
+            }
+
+            tickets.forEach(TicketUi::displayTicketDetails);
+
+            System.out.println("Would you like to confirm your reservation for all displayed tickets (yes/no)?");
+            String answer = scanner.nextLine().trim();
+
+            if (answer.equalsIgnoreCase("yes")) {
+                System.out.println("Enter your ID:");
+                UUID id = UUID.fromString(scanner.nextLine().trim());
+
+                Optional<Client> clientOptional = clientService.getClientById(id);
+                if (clientOptional.isEmpty()) {
+                    System.out.println("Client not found. Please check your ID.");
+                    return;
+                }
+
+                Client client = clientOptional.get(); // Extract the Client object
+
+                Reservation reservation = new Reservation(UUID.randomUUID(), tickets, client, ReservationStatus.PENDING);
+                reservationService.confirmReservation(reservation);
+                System.out.println("Reservation confirmed for all displayed tickets.");
+            } else if (answer.equalsIgnoreCase("no")) {
+                System.out.println("Reservation not confirmed.");
             } else {
-                tickets.forEach(ticket -> System.out.println(displayTicketDetails(ticket)));
+                System.out.println("Invalid response. Please enter 'yes' or 'no'.");
             }
         } catch (Exception e) {
             System.out.println("Error retrieving tickets by destination: " + e.getMessage());
