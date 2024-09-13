@@ -4,18 +4,19 @@ import main.java.ma.wora.models.entities.Client;
 import main.java.ma.wora.repositories.ClientRepository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class ClientService {
-    private static ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
 
     public ClientService(ClientRepository clientRepository) {
-        ClientService.clientRepository = clientRepository;
+        this.clientRepository = clientRepository;
     }
 
-    private static final String emailRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+    private static final String EMAIL_REGEX = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
     private boolean isEmailValid(String email) {
-        return email.matches(emailRegex);
+        return email.matches(EMAIL_REGEX);
     }
 
     public boolean createClient(Client client) {
@@ -37,7 +38,7 @@ public class ClientService {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(clientRepository.updateClient(client));
+        return clientRepository.updateClient(client);
     }
 
     public Optional<Client> getClientByEmail(String email) {
@@ -53,12 +54,15 @@ public class ClientService {
         return clientRepository.getClientByFirstName(firstName);
     }
 
-    public Client authenticate(String email, String lastName) {
+    public Optional<Client> authenticate(String email, String lastName) {
         if (!isEmailValid(email)) {
             System.out.println("Invalid email format.");
-            return null;
+            return Optional.empty();
         }
 
-        return clientRepository.authenticate(email, lastName);
+        return clientRepository.authenticate(lastName, email);
+    }
+    public Optional<Client> getClientById(UUID clientId) {
+        return clientRepository.getClientById(clientId);
     }
 }

@@ -4,6 +4,7 @@ import main.java.ma.wora.models.entities.Client;
 import main.java.ma.wora.presentation.ticket.TicketUi;
 import main.java.ma.wora.services.ClientService;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
@@ -11,9 +12,10 @@ import java.util.UUID;
 public class ClientUi {
     private final ClientService clientService;
     private final Scanner scanner = new Scanner(System.in);
-
-    public ClientUi(ClientService clientService) {
+    private final TicketUi ticketUi;
+    public ClientUi(ClientService clientService, TicketUi ticketUi) {
         this.clientService = clientService;
+        this.ticketUi = ticketUi;
     }
 
     public boolean createClient() {
@@ -26,11 +28,16 @@ public class ClientUi {
         System.out.println("Please enter your phone number: ");
         String phoneNumber = scanner.nextLine();
 
-        Client newClient = new Client(UUID.randomUUID(), firstName, lastName, email, phoneNumber);
-        clientService.createClient(newClient);
-        System.out.println("Account successfully created. Welcome, " + firstName + "!");
+        Client newClient = new Client(UUID.randomUUID(), firstName, lastName, email, phoneNumber , new ArrayList<>());
+        boolean success = clientService.createClient(newClient);
 
-        return true;
+        if (success) {
+            System.out.println("Account successfully created. Welcome, " + firstName + "!");
+            return true;
+        } else {
+            System.out.println("Failed to create account. Please try again.");
+            return false;
+        }
     }
 
     public boolean authenticateUser() {
@@ -110,12 +117,17 @@ public class ClientUi {
             phoneNumber = client.getPhone();
         }
 
-        Client updatedClient = new Client(client.getId(), firstName, lastName, newEmail, phoneNumber);
+        Client updatedClient = new Client(client.getId(), firstName, lastName, newEmail, phoneNumber, new ArrayList<>());
 
-        clientService.updateClient(updatedClient);
-        System.out.println("Client updated successfully.");
+        Optional<Client> success = clientService.updateClient(updatedClient);
 
-        return updatedClient;
+        if (success.isEmpty()) {
+            System.out.println("Client updated successfully.");
+            return updatedClient;
+        } else {
+            System.out.println("Failed to update client. Please try again.");
+            return null;
+        }
     }
 
     public Optional<Client> getClient() {
@@ -125,7 +137,6 @@ public class ClientUi {
 
         if (clientOpt.isEmpty()) {
             System.out.println("Client not found.");
-            return Optional.empty();
         }
 
         return clientOpt;
@@ -137,12 +148,12 @@ public class ClientUi {
             System.out.println("Welcome to ECOMOVE!");
             System.out.println("1. Update Your Account");
             System.out.println("2. Visit your account");
-            System.out.println("3.Search Ticket");
+            System.out.println("3. Search Ticket");
             int choice = getUserChoice();
             switch (choice) {
                 case 1 -> updateClient();
                 case 2 -> getClient();
-                case 3 -> TicketUi.searchTicketByIdDestination();
+                case 3 -> ticketUi.searchTicketByIdDestination();
                 default -> {
                     System.out.println("Invalid option. Exiting...");
                     running = false;
@@ -154,7 +165,7 @@ public class ClientUi {
     private int getUserChoice() {
         while (!scanner.hasNextInt()) {
             System.out.println("That's not a valid number. Please try again.");
-            scanner.next();
+            scanner.next(); // Clear invalid input
         }
         int choice = scanner.nextInt();
         scanner.nextLine();

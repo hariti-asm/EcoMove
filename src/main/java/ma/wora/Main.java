@@ -22,19 +22,22 @@ public class Main {
     private static ContractRepository contractRepository;
     private static ContractService contractService;
     private static TicketService ticketService;
-    private static  TicketRepository ticketRepository;
+    private static TicketRepository ticketRepository;
     private static PromotionService promotionService;
     private static ClientRepository clientRepository;
     private static ClientService clientService;
+    private static ReservationRepository reservationRepository;
+    private static ReservationService reservationService;
 
     static {
         try {
             partnerRepository = new PartnerRepositoryImpl();
             clientRepository = new ClientRepositoryImpl();
+            reservationRepository = new ReservationRepositoryImpl();
             contractRepository = new ContractRepositoryImpl(partnerRepository);
             partnerService = new PartnerService(partnerRepository);
             contractService = new ContractService(contractRepository);
-            clientService = new  ClientService(clientRepository);
+            clientService = new ClientService(clientRepository);
             ticketRepository = new TicketRepositoryImpl(contractRepository);
             ticketService = new TicketService(ticketRepository);
             PromotionRepository promotionRepository = new PromotionRepositoryImpl();
@@ -51,9 +54,10 @@ public class Main {
     public static void main(String[] args) {
         final PartnerUi partnerUi = new PartnerUi(partnerService);
         final ContractUi contractUi = new ContractUi(contractRepository, partnerRepository, contractService);
-        final TicketUi ticketUi = new TicketUi(ticketService , contractService);
+        final ReservationService reservationService = new ReservationService(reservationRepository); // This creates a new instance
+        final TicketUi ticketUi = new TicketUi(ticketService, contractService, reservationService, clientService); // Here, you're using the new instance
+        final ClientUi clientUi = new ClientUi(clientService, ticketUi);
         final PromotionUi promotionUi = new PromotionUi(promotionService);
-        final ClientUi clientUi = new ClientUi(clientService);
 
         boolean authenticated = false;
 
@@ -71,7 +75,6 @@ public class Main {
                 case 3 -> ticketUi.displayTicketMenu();
                 case 4 -> promotionUi.displayPromotionMenu();
                 case 5 -> clientUi.displayClientMenu();
-
                 case 0 -> {
                     running = false;
                     System.out.println("Exiting the program. Goodbye!");
