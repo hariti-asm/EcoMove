@@ -1,14 +1,15 @@
 package main.java.ma.wora.models.entities;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class Favorite {
     private UUID id;
-    private Client client;
+    private Optional<Client> client;
     private List<Journey> journeys;
 
-    public Favorite(UUID id, Client client, List<Journey> journeys) {
+    public Favorite(UUID id, Optional<Client> client, List<Journey> journeys) {
         this.id = id;
         this.client = client;
         this.journeys = journeys;
@@ -22,12 +23,12 @@ public class Favorite {
         this.id = id;
     }
 
-    public Client getClient() {
+    public Optional<Client> getClient() {
         return client;
     }
 
     public void setClient(Client client) {
-        this.client = client;
+        this.client = Optional.ofNullable(client);
     }
 
     public List<Journey> getJourneys() {

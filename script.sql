@@ -90,3 +90,12 @@ VALUES
     (gen_random_uuid(), 'Chicago', 'Houston', '2024-09-09 09:30:00', '2024-09-09 14:30:00'),
     (gen_random_uuid(), 'San Francisco', 'Seattle', '2024-09-10 12:15:00', '2024-09-10 16:45:00'),
     (gen_random_uuid(), 'Meknes', 'Oujda', '2024-09-13 06:00:00', '2024-09-13 10:00:00');
+
+CREATE TABLE favorites (
+                           id UUID PRIMARY KEY,
+                           client_id UUID NOT NULL,
+                           journey_id UUID NOT NULL,
+                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+                           CONSTRAINT fk_journey FOREIGN KEY (journey_id) REFERENCES journey(id) ON DELETE CASCADE
+);

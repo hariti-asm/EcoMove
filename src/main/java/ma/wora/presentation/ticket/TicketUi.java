@@ -1,16 +1,10 @@
 package main.java.ma.wora.presentation.ticket;
 
-import main.java.ma.wora.models.entities.Client;
-import main.java.ma.wora.models.entities.Contract;
-import main.java.ma.wora.models.entities.Reservation;
-import main.java.ma.wora.models.entities.Ticket;
+import main.java.ma.wora.models.entities.*;
 import main.java.ma.wora.models.enums.ReservationStatus;
 import main.java.ma.wora.models.enums.TicketStatus;
 import main.java.ma.wora.models.enums.TransportType;
-import main.java.ma.wora.services.ClientService;
-import main.java.ma.wora.services.ContractService;
-import main.java.ma.wora.services.ReservationService;
-import main.java.ma.wora.services.TicketService;
+import main.java.ma.wora.services.*;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -19,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TicketUi {
 
@@ -27,12 +22,13 @@ public class TicketUi {
     private ContractService contractService = null;
     private ReservationService reservationService = null;
     private ClientService clientService = null;
-
-    public TicketUi(TicketService ticketService, ContractService contractService, ReservationService reservationService, ClientService clientService) {
+     private FavoriteService favoriteService = null;
+    public TicketUi(TicketService ticketService, ContractService contractService, ReservationService reservationService, ClientService clientService , FavoriteService favoriteService) {
         this.ticketService = ticketService;
         this.contractService = contractService;
         this.reservationService = reservationService;
         this.clientService = clientService;
+        this.favoriteService = favoriteService;
     }
 
     public void addTicket() {
@@ -227,7 +223,6 @@ public class TicketUi {
         System.out.println("Enter your end point (to):");
         String endPoint = scanner.nextLine();
 
-
         LocalDateTime departureTime;
         try {
             departureTime = LocalDateTime.parse(departureTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -245,9 +240,11 @@ public class TicketUi {
             }
 
             tickets.forEach(TicketUi::displayTicketDetails);
-            System.out.println("Would you like to confirm your reservation to mention it as favorite (confirm/favorite)");
-            String answer2 = scanner.nextLine();
-            if(answer2.equals("confirm")) {
+
+            System.out.println("Would you like to confirm your reservation or mention it as favorite (confirm/favorite)?");
+            String answer2 = scanner.nextLine().trim();
+
+            if (answer2.equalsIgnoreCase("confirm")) {
                 System.out.println("Would you like to confirm your reservation for all displayed tickets (yes/no)?");
                 String answer = scanner.nextLine().trim();
 
@@ -261,26 +258,37 @@ public class TicketUi {
                         return;
                     }
 
-                    Client client = clientOptional.get(); // Extract the Client object
+                    Client client = clientOptional.get();
 
                     Reservation reservation = new Reservation(UUID.randomUUID(), tickets, client, ReservationStatus.PENDING);
                     reservationService.confirmReservation(reservation);
                     System.out.println("Reservation confirmed for all displayed tickets.");
-                } else if (answer.equalsIgnoreCase("no")) {
-                    System.out.println("Reservation not confirmed.");
                 } else {
-                    System.out.println("Invalid response. Please enter 'yes' or 'no'.");
+                    System.out.println("Reservation not confirmed.");
                 }
-            } else if (answer2.equals("favorite")) {
+            } else if (answer2.equalsIgnoreCase("favorite")) {
                 System.out.println("Enter your ID:");
                 UUID id = UUID.fromString(scanner.nextLine().trim());
+
                 Optional<Client> clientOptional = clientService.getClientById(id);
                 if (clientOptional.isEmpty()) {
                     System.out.println("Client not found. Please check your ID.");
-
+                    return;
                 }
+
                 Client client = clientOptional.get();
 
+                List<Journey> journeys = tickets.stream()
+                        .map(Ticket::getJourney)
+                        .collect(Collectors.toList());
+
+                Favorite favorite = new Favorite(UUID.randomUUID(), Optional.of(client), journeys);
+
+                favoriteService.mentionAsFavorite(favorite);
+
+                System.out.println("Journeys marked as favorite.");
+            } else {
+                System.out.println("Invalid option. Please choose 'confirm' or 'favorite'.");
             }
         } catch (Exception e) {
             System.out.println("Error retrieving tickets by destination: " + e.getMessage());

@@ -28,6 +28,8 @@ public class Main {
     private static ClientService clientService;
     private static ReservationRepository reservationRepository;
     private static ReservationService reservationService;
+    private static FavoriteRepository favoriteRepository;
+    private static FavoriteService favoriteService;
 
     static {
         try {
@@ -42,6 +44,8 @@ public class Main {
             ticketService = new TicketService(ticketRepository);
             PromotionRepository promotionRepository = new PromotionRepositoryImpl();
             promotionService = new PromotionService(promotionRepository);
+            favoriteRepository = new FavoriteRepositoryImpl(clientService);  // Add this line
+            favoriteService = new FavoriteService(favoriteRepository);  // Add this line
 
         } catch (SQLException e) {
             System.err.println("Failed to initialize repositories: " + e.getMessage());
@@ -54,8 +58,9 @@ public class Main {
     public static void main(String[] args) {
         final PartnerUi partnerUi = new PartnerUi(partnerService);
         final ContractUi contractUi = new ContractUi(contractRepository, partnerRepository, contractService);
-        final ReservationService reservationService = new ReservationService(reservationRepository); // This creates a new instance
-        final TicketUi ticketUi = new TicketUi(ticketService, contractService, reservationService, clientService); // Here, you're using the new instance
+        final ReservationService reservationService = new ReservationService(reservationRepository);
+        final FavoriteService favoriteService = new FavoriteService(favoriteRepository);
+        final TicketUi ticketUi = new TicketUi(ticketService, contractService, reservationService, clientService , favoriteService);
         final ClientUi clientUi = new ClientUi(clientService, ticketUi);
         final PromotionUi promotionUi = new PromotionUi(promotionService);
 
